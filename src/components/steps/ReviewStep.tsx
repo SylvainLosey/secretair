@@ -14,6 +14,13 @@ import { generatePDF } from "~/utils/pdf-generator";
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
 
+// Define API response type for better type safety
+interface DownloadPdfResponse {
+  success: boolean;
+  message?: string;
+  letter?: Letter;
+}
+
 export default function ReviewStep() {
   const { letterId, setCurrentStep } = useWizardStore();
   const [isLoading, setIsLoading] = useState(true);
@@ -49,11 +56,11 @@ export default function ReviewStep() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to download PDF');
+        const errorData = await response.json() as DownloadPdfResponse;
+        throw new Error(errorData.message ?? 'Failed to download PDF');
       }
       
-      const data = await response.json();
+      const data = await response.json() as DownloadPdfResponse;
       
       if (!data.success || !data.letter) {
         throw new Error('Failed to fetch letter data');

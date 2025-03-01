@@ -218,17 +218,14 @@ export const letterRouter = createTRPCRouter({
           throw new Error("Letter not found");
         }
 
-        // Use the consolidated PDF generator and destructure the result
-        const { pdfBytes, fileName } = await generatePDF(letter);
-        
+        // No longer using pdf generator on server
         return {
           success: true,
-          pdfBytes, // Already a string so no need for conversion
-          fileName
+          letter
         };
       } catch (error) {
-        console.error('Error generating PDF content:', error);
-        throw new Error('Failed to generate PDF content');
+        console.error('Error fetching letter:', error);
+        throw new Error('Failed to fetch letter');
       }
     }),
 });
