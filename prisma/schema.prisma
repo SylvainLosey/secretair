@@ -11,6 +11,8 @@ datasource db {
   directUrl = env("DIRECT_URL") // Used for migrations
   // Add this for PgBouncer support
   relationMode = "prisma"
+  // Add this to disable prepared statements
+  extensions = [pgbouncer]
 }
 
 model Letter {
