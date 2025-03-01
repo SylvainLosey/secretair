@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { OpenAI } from "openai";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -164,6 +165,191 @@ export const letterRouter = createTRPCRouter({
       } catch (error) {
         console.error('Error generating PDF:', error);
         throw new Error('Failed to generate PDF');
+      }
+    }),
+
+  getPdfContent: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        // Fetch the letter from the database
+        const letter = await ctx.db.letter.findUnique({
+          where: { id: input.id },
+        });
+
+        if (!letter) {
+          throw new Error('Letter not found');
+        }
+
+        // Create a new PDF document
+        const pdfDoc = await PDFDocument.create();
+        let page = pdfDoc.addPage([612, 792]); // US Letter size
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontSize = 12;
+        
+        // Define margins
+        const margin = 50;
+        const { width, height } = page.getSize();
+        let currentY = height - margin;
+        
+        // Add date (top right)
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('en-US', { 
+          year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        const dateWidth = font.widthOfTextAtSize(dateStr, fontSize);
+        page.drawText(dateStr, {
+          x: width - margin - dateWidth,
+          y: currentY,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        currentY -= 50; // Move down for sender address
+        
+        // Add sender info
+        page.drawText(letter.senderName, {
+          x: margin,
+          y: currentY,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        currentY -= 15;
+        
+        // Split address into lines and add them
+        const senderAddressLines = letter.senderAddress.split('\n');
+        for (const line of senderAddressLines) {
+          page.drawText(line, {
+            x: margin,
+            y: currentY,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          currentY -= 15;
+        }
+        
+        currentY -= 30; // Extra space before recipient
+        
+        // Add recipient info
+        page.drawText(letter.receiverName, {
+          x: margin,
+          y: currentY,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        currentY -= 15;
+        
+        // Split recipient address into lines
+        const receiverAddressLines = letter.receiverAddress.split('\n');
+        for (const line of receiverAddressLines) {
+          page.drawText(line, {
+            x: margin,
+            y: currentY,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          currentY -= 15;
+        }
+        
+        currentY -= 30; // Space before salutation
+        
+        // Add salutation
+        page.drawText(`Dear ${letter.receiverName},`, {
+          x: margin,
+          y: currentY,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        currentY -= 30; // Space before content
+        
+        // Split content into lines and render (simple word wrap)
+        const contentLines = [];
+        const words = letter.content.split(' ');
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+          
+          if (testWidth > width - 2 * margin) {
+            contentLines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        
+        if (currentLine) {
+          contentLines.push(currentLine);
+        }
+        
+        // Draw each line of content
+        for (const line of contentLines) {
+          page.drawText(line, {
+            x: margin,
+            y: currentY,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          currentY -= 15;
+          
+          // Check if we need a new page
+          if (currentY < margin) {
+            const newPage = pdfDoc.addPage([612, 792]);
+            page = newPage;
+            currentY = height - margin;
+          }
+        }
+        
+        currentY -= 45; // Space before closing
+        
+        // Add closing
+        page.drawText('Sincerely,', {
+          x: margin,
+          y: currentY,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        currentY -= 50; // Space for signature
+        
+        // Add signature if available
+        if (letter.signature) {
+          // Implementation for adding signature image would go here
+          // This would require converting the data URL to a format usable by pdf-lib
+        }
+        
+        // Add sender name below signature space
+        page.drawText(letter.senderName, {
+          x: margin,
+          y: currentY,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        // Get the PDF as bytes
+        const pdfBytes = await pdfDoc.save();
+        
+        return {
+          success: true,
+          pdfBytes: Buffer.from(pdfBytes).toString('base64'),
+          fileName: `letter-${input.id}.pdf`
+        };
+      } catch (error) {
+        console.error('Error generating PDF content:', error);
+        throw new Error('Failed to generate PDF content');
       }
     }),
 });
