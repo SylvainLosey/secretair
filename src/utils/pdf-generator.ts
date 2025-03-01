@@ -1,109 +1,91 @@
-import PDFDocument from 'pdfkit';
-import type { Letter } from '@prisma/client';
+import puppeteer from 'puppeteer';
+import handlebars from 'handlebars';
+import fs from 'fs';
+import path from 'path';
+
+type Letter = {
+  id: string;
+  content: string;
+  senderName: string;
+  senderAddress: string;
+  receiverName: string;
+  receiverAddress: string;
+  signature: string | null;
+  createdAt: Date;
+}
 
 export async function generatePdfFromLetter(letter: Letter): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
+  try {
+    // Load the template - fix path to ensure we find the file
+    const templatePath = path.join(process.cwd(), 'src/templates/letter.hbs');
+    
+    console.log('Looking for template at:', templatePath);
+    
+    let templateSource;
     try {
-      // Create a buffer to store PDF data
-      const buffers: Buffer[] = [];
-      
-      // Create a PDF doc with absolutely minimal font configuration
-      // Don't specify any font in the constructor
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        info: {
-          Title: `Letter - ${letter.id}`,
-          Author: letter.senderName,
-        },
-        // Explicitly avoid font directory auto-detection
-        fontDirectories: []
-      });
-      
-      // Handle PDF data collection
-      doc.on('data', buffer => buffers.push(buffer));
-      doc.on('end', () => {
-        const pdfData = Buffer.concat(buffers);
-        resolve(pdfData);
-      });
-      
-      // Format date
-      const formattedDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      
-      // Extract first line as subject
-      const contentLines = letter.content.split('\n');
-      const subject = contentLines[0] || 'Letter';
-      const contentWithoutSubject = contentLines.slice(1).join('\n');
-      
-      // Split addresses
-      const senderAddressLines = letter.senderAddress.split('\n');
-      const receiverAddressLines = letter.receiverAddress.split('\n');
-      
-      // Set default font only once - use the standard built-in 'Helvetica'
-      // which is the default and shouldn't require external loading
-      doc.fontSize(11);
-      
-      // Add sender address
-      doc.text(letter.senderName, 50, 150, { continued: false });
-      
-      let yPos = 165;
-      senderAddressLines.forEach(line => {
-        doc.text(line, 50, yPos);
-        yPos += 15;
-      });
-      
-      // Add recipient address
-      doc.text(letter.receiverName, 50, 250);
-      
-      yPos = 265;
-      receiverAddressLines.forEach(line => {
-        doc.text(line, 50, yPos);
-        yPos += 15;
-      });
-      
-      // Add date
-      doc.text(formattedDate, 400, 250, { align: 'right' });
-      
-      // Add subject
-      doc.text(`Subject: ${subject}`, 50, 350);
-      
-      // Add content
-      doc.text(contentWithoutSubject, 50, 380, {
-        align: 'left',
-        paragraphGap: 15,
-        lineGap: 5,
-        width: 500
-      });
-      
-      // Add closing
-      const finalYPosition = doc.y + 40;
-      doc.text('Sincerely,', 50, finalYPosition);
-      
-      // Add signature if available
-      if (letter.signature) {
-        try {
-          if (letter.signature.startsWith('data:image')) {
-            const signatureBase64 = letter.signature.split(',')[1];
-            const signatureBuffer = Buffer.from(signatureBase64, 'base64');
-            doc.image(signatureBuffer, 50, finalYPosition + 30, { width: 150 });
-          }
-        } catch (err) {
-          console.error('Error adding signature:', err);
-        }
-      }
-      
-      // Add sender name below signature
-      doc.text(letter.senderName, 50, letter.signature ? finalYPosition + 100 : finalYPosition + 60);
-      
-      // Finalize the PDF
-      doc.end();
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      reject(new Error(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`));
+      templateSource = fs.readFileSync(templatePath, 'utf8');
+    } catch (err) {
+      console.error('Failed to read template at', templatePath);
+      // Try alternative path
+      const altPath = path.join(process.cwd(), 'templates/letter.hbs');
+      console.log('Trying alternative path:', altPath);
+      templateSource = fs.readFileSync(altPath, 'utf8');
     }
-  });
+    
+    // Compile the template
+    const template = handlebars.compile(templateSource);
+    
+    // Format date
+    const formattedDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // Extract first line as subject if possible
+    const subject = letter.content.split('\n')[0] || 'Letter';
+    
+    // Split addresses into arrays for the template
+    const senderAddressLines = letter.senderAddress.split('\n');
+    const receiverAddressLines = letter.receiverAddress.split('\n');
+    
+    // Update the variable names to match the template
+    const html = template({
+      senderName: letter.senderName,
+      senderAddress: senderAddressLines,
+      receiverName: letter.receiverName,
+      receiverAddress: receiverAddressLines,
+      content: letter.content,
+      signature: letter.signature,
+      date: formattedDate,
+      subject: subject
+    });
+    
+    // Launch a browser with more options for troubleshooting
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    try {
+      const page = await browser.newPage();
+      
+      // Set content and wait for rendering
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      // Generate PDF
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: 0, right: 0, bottom: 0, left: 0 }
+      });
+      
+      return pdf;
+    } finally {
+      await browser.close();
+    }
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw new Error(`Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}`);
+  }
 } 

@@ -1,6 +1,6 @@
 import { db } from "~/server/db";
 import { NextRequest, NextResponse } from "next/server";
-import { generateLetterPdf } from "~/lib/pdf-service";
+import { generatePdfFromLetter } from "~/utils/pdf-generator";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Letter found, generating PDF for download...');
     
-    // Generate PDF using the service
-    const pdfBuffer = await generateLetterPdf(letter);
+    // Generate PDF using the letter data
+    const pdfBuffer = await generatePdfFromLetter(letter);
     
     console.log('PDF generated successfully, converting to base64...');
     
@@ -40,9 +40,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error generating PDF:", error);
     
-    return NextResponse.json({ 
-      success: false, 
-      message: error instanceof Error ? error.message : "Failed to generate PDF" 
-    }, { status: 500 });
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to generate PDF" 
+      },
+      { status: 500 }
+    );
   }
 }

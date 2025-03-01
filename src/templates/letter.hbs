@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      font-size: 11pt;
+    }
+    .page {
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      padding: 15mm;
+      box-sizing: border-box;
+    }
+    .sender-address {
+      margin-top: 90mm; /* Below postage area */
+      font-size: 10pt;
+    }
+    .sender-name {
+      font-weight: bold;
+    }
+    .recipient-address {
+      position: absolute;
+      top: 60mm;
+      left: 22mm;
+      width: 85.5mm;
+      height: 25.5mm;
+    }
+    .date {
+      position: absolute;
+      top: 110mm;
+      right: 20mm;
+    }
+    .subject {
+      margin-top: 40mm;
+      font-weight: bold;
+    }
+    .content {
+      margin-top: 10mm;
+      line-height: 1.5;
+    }
+    .signature-container {
+      margin-top: 30mm;
+    }
+    .signature {
+      max-height: 20mm;
+      max-width: 50mm;
+    }
+    .closing {
+      margin-bottom: 15mm;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Sender info -->
+    <div class="sender-address">
+      <div class="sender-name">{{senderName}}</div>
+      {{#each senderAddress}}
+        <div>{{this}}</div>
+      {{/each}}
+    </div>
+    
+    <!-- Recipient address (window area) -->
+    <div class="recipient-address">
+      <div><strong>{{receiverName}}</strong></div>
+      {{#each receiverAddress}}
+        <div>{{this}}</div>
+      {{/each}}
+    </div>
+    
+    <!-- Date -->
+    <div class="date">{{date}}</div>
+    
+    <!-- Subject line -->
+    <div class="subject">Subject: {{content.[0]}}</div>
+    
+    <!-- Letter content -->
+    <div class="content">
+      <p>{{content}}</p>
+    </div>
+    
+    <!-- Signature -->
+    <div class="signature-container">
+      <div class="closing">Sincerely,</div>
+      {{#if signature}}
+        <img class="signature" src="{{signature}}" alt="Signature">
+      {{/if}}
+      <div class="sender-name">{{senderName}}</div>
+    </div>
+  </div>
+</body>
+</html>
