@@ -9,6 +9,7 @@ import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import Image from "next/image";
 
 export default function UploadStep() {
   const [isUploading, setIsUploading] = useState(false);
@@ -36,6 +37,9 @@ export default function UploadStep() {
     setIsUploading(true);
     setError(null);
     const file = acceptedFiles[0];
+    
+    // Add this check to satisfy TypeScript
+    if (!file) return;
     
     // Create preview
     const reader = new FileReader();
@@ -82,7 +86,7 @@ export default function UploadStep() {
       setVisibleSteps(steps);
       
       // Move to the next step
-      const nextStep = steps[1] || "content";
+      const nextStep = steps[1] ?? "content";
       setCurrentStep(nextStep);
     } catch (err) {
       handleError(err, "Failed to analyze the letter");
@@ -92,7 +96,7 @@ export default function UploadStep() {
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+    onDrop: (files) => { void onDrop(files); },
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
     },
@@ -127,9 +131,10 @@ export default function UploadStep() {
         
         {preview ? (
           <div className="relative h-full w-full">
-            <img
+            <Image
               src={preview}
               alt="Uploaded letter"
+              fill
               className="h-full w-full object-contain"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity group-hover:opacity-100">

@@ -1,14 +1,24 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { db } from "~/server/db";
-import { NextRequest, NextResponse } from "next/server";
-import { generatePdfFromLetter } from "~/utils/pdf-generator";
+import { generatePDF } from "~/utils/pdf-generator";
 
 export async function POST(request: NextRequest) {
   try {
-    const { id } = await request.json();
+    // Parse the request body
+    const requestData = await request.json() as { id?: string };
+    const letterId = requestData.id;
+    
+    if (!letterId) {
+      return NextResponse.json(
+        { success: false, message: "Letter ID is required" },
+        { status: 400 }
+      );
+    }
 
     // Fetch the letter from the database
     const letter = await db.letter.findUnique({
-      where: { id },
+      where: { id: letterId },
     });
 
     if (!letter) {
@@ -18,22 +28,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate PDF using the consolidated function
-    const pdfBuffer = await generatePdfFromLetter(letter);
-    
-    // Convert PDF buffer to base64
-    const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+    // Generate the PDF
+    const { pdfBytes, fileName } = await generatePDF(letter);
 
-    // Return successful response with base64 PDF data
+    // Return the PDF as base64
     return NextResponse.json({
       success: true,
-      pdfBytes: pdfBase64,
-      fileName: `letter-${id}.pdf`,
+      pdfBytes,
+      fileName,
     });
-
   } catch (error) {
     console.error("Error generating PDF:", error);
-    
     return NextResponse.json(
       { 
         success: false, 

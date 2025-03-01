@@ -2,12 +2,13 @@
 
 // src/components/steps/ReviewStep.tsx
 import { useEffect, useState } from "react";
-import { useWizardStore, type WizardStep } from "~/lib/store";
+import { useWizardStore } from "~/lib/store";
 import { api, type RouterOutputs } from "~/utils/api";
 import { Button } from "~/components/ui/Button";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { SuccessMessage } from "~/components/ui/SuccessMessage";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import Image from "next/image";
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
@@ -53,10 +54,19 @@ export default function ReviewStep() {
         throw new Error(`Server responded with ${response.status}`);
       }
       
-      const data = await response.json();
+      // Define the response type
+      type PdfResponse = {
+        success: boolean;
+        pdfBytes?: string;
+        fileName?: string;
+        message?: string;
+      };
+      
+      // Parse the response with type
+      const data = await response.json() as PdfResponse;
       
       if (!data.success || !data.pdfBytes) {
-        throw new Error(data.message || "Failed to generate PDF");
+        throw new Error(data.message ?? "Failed to generate PDF");
       }
       
       // Convert base64 to blob
@@ -80,7 +90,7 @@ export default function ReviewStep() {
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = data.fileName || "letter.pdf";
+      link.download = data.fileName ?? "letter.pdf";
       link.click();
       
       URL.revokeObjectURL(url);
@@ -217,10 +227,12 @@ export default function ReviewStep() {
               </button>
             </div>
             <div className="rounded-md border border-gray-200 bg-white p-4">
-              <img 
-                src={letter.signature} 
-                alt="Your signature" 
-                className="h-16 w-auto object-contain" 
+              <Image 
+                src={letter.signature}
+                alt="Your signature"
+                width={200}
+                height={80}
+                className="h-16 w-auto object-contain"
               />
             </div>
           </div>

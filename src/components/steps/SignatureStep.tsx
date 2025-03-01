@@ -7,6 +7,7 @@ import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { Button } from "~/components/ui/Button";
+import Image from "next/image";
 
 export default function SignatureStep() {
   const { letterId } = useWizardStore();
@@ -75,9 +76,11 @@ export default function SignatureStep() {
       {signature ? (
         <div className="mb-4">
           <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4">
-            <img 
+            <Image 
               src={signature} 
               alt="Your signature" 
+              width={240}
+              height={80}
               className="mx-auto h-32 w-auto object-contain" 
             />
           </div>

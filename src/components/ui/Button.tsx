@@ -5,6 +5,7 @@ import React from 'react';
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  as?: React.ElementType;
   variant?: ButtonVariant;
   isLoading?: boolean;
   fullWidth?: boolean;
@@ -21,6 +22,7 @@ export function Button({
   rightIcon,
   className = "",
   disabled,
+  as: Component = 'button',
   ...props
 }: ButtonProps) {
   const baseStyles = "inline-flex items-center justify-center rounded-lg px-4 py-2.5 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
@@ -37,9 +39,9 @@ export function Button({
   const disabledStyles = disabled || isLoading ? "opacity-60 cursor-not-allowed" : "";
   
   return (
-    <button
+    <Component
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles} ${disabledStyles} ${className}`}
-      disabled={disabled || isLoading}
+      disabled={disabled ?? isLoading}
       {...props}
     >
       {isLoading && (
@@ -63,6 +65,6 @@ export function Button({
       {!isLoading && leftIcon && <span className="mr-2">{leftIcon}</span>}
       {children}
       {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
-    </button>
+    </Component>
   );
 } 
