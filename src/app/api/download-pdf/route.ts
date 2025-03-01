@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "~/server/db";
-import { generatePDF } from "~/utils/pdf-generator";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,21 +27,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate the PDF
-    const { pdfBytes, fileName } = await generatePDF(letter);
-
-    // Return the PDF as base64
+    // Return the letter data
     return NextResponse.json({
       success: true,
-      pdfBytes,
-      fileName,
+      letter,
     });
   } catch (error) {
-    console.error("Error generating PDF:", error);
+    console.error("Error fetching letter:", error);
     return NextResponse.json(
       { 
         success: false, 
-        message: error instanceof Error ? error.message : "Failed to generate PDF" 
+        message: error instanceof Error ? error.message : "Failed to fetch letter" 
       },
       { status: 500 }
     );

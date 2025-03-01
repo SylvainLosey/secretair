@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { OpenAI } from "openai";
-import { generatePDF } from "~/utils/pdf-generator";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -192,16 +191,14 @@ export const letterRouter = createTRPCRouter({
         if (!letter) {
           throw new Error("Letter not found");
         }
-
-        // Now using the consolidated PDF generator
-        await generatePDF(letter);
         
         return {
           success: true,
+          letter
         };
       } catch (error) {
-        console.error("Error generating PDF:", error);
-        throw new Error("Failed to generate PDF");
+        console.error("Error fetching letter:", error);
+        throw new Error("Failed to fetch letter");
       }
     }),
 

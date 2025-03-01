@@ -9,6 +9,7 @@ import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { SuccessMessage } from "~/components/ui/SuccessMessage";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import Image from "next/image";
+import { generatePDF } from "~/utils/pdf-generator";
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
@@ -35,15 +36,12 @@ export default function ReviewStep() {
     }
   }, [letterQuery.data]);
 
-
-
   const downloadPdf = async () => {
-    if (!letterId) return;
-    
     try {
       setIsDownloading(true);
       setError(null);
       
+      // First, fetch the letter data from the API
       const response = await fetch('/api/download-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,26 +49,21 @@ export default function ReviewStep() {
       });
       
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to download PDF');
       }
       
-      // Define the response type
-      type PdfResponse = {
-        success: boolean;
-        pdfBytes?: string;
-        fileName?: string;
-        message?: string;
-      };
+      const data = await response.json();
       
-      // Parse the response with type
-      const data = await response.json() as PdfResponse;
-      
-      if (!data.success || !data.pdfBytes) {
-        throw new Error(data.message ?? "Failed to generate PDF");
+      if (!data.success || !data.letter) {
+        throw new Error('Failed to fetch letter data');
       }
       
-      // Convert base64 to blob
-      const byteCharacters = atob(data.pdfBytes);
+      // Generate the PDF on the client side
+      const { pdfBytes, fileName } = await generatePDF(data.letter);
+      
+      // Convert the base64 string to a binary array
+      const byteCharacters = atob(pdfBytes);
       const byteArrays = [];
       
       for (let offset = 0; offset < byteCharacters.length; offset += 512) {
@@ -90,18 +83,16 @@ export default function ReviewStep() {
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = data.fileName ?? "letter.pdf";
+      link.download = fileName ?? "letter.pdf";
       link.click();
       
       URL.revokeObjectURL(url);
       
       setSuccessMessage("PDF downloaded successfully!");
-      // Removed resetWizard() and router.push("/") to maintain state
-    } catch (error: unknown) {
-      console.error("Error downloading PDF:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      setError(`Failed to download PDF: ${errorMessage}`);
-    } finally {
+      setIsDownloading(false);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error occurred');
       setIsDownloading(false);
     }
   };
