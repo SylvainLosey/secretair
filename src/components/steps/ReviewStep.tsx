@@ -2,17 +2,16 @@
 
 // src/components/steps/ReviewStep.tsx
 import { useEffect, useState } from "react";
-import { useWizardStore, type WizardStep } from "~/lib/store";
-import { api, type RouterOutputs } from "~/utils/api";
-import { useRouter } from "next/navigation";
+import { useWizardStore } from "~/lib/store";
+import { api } from "~/utils/api";
 import { Button } from "~/components/ui/Button";
+import type { RouterOutputs } from "~/utils/api";
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
 
 export default function ReviewStep() {
-  const router = useRouter();
-  const { letterId, resetWizard, setCurrentStep } = useWizardStore();
+  const { letterId, setCurrentStep } = useWizardStore();
   const [isLoading, setIsLoading] = useState(true);
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -22,7 +21,6 @@ export default function ReviewStep() {
     { enabled: !!letterId }
   );
   
-  const updateLetterMutation = api.letter.updateLetter.useMutation();
   const generatePdfMutation = api.letter.generatePdf.useMutation();
 
   useEffect(() => {
@@ -31,6 +29,23 @@ export default function ReviewStep() {
       setIsLoading(false);
     }
   }, [letterQuery.data]);
+
+  const handleEditSection = (section: string) => {
+    switch (section) {
+      case "sender":
+        setCurrentStep(1);
+        break;
+      case "recipient":
+        setCurrentStep(2);
+        break;
+      case "content":
+        setCurrentStep(3);
+        break;
+      case "signature":
+        setCurrentStep(4);
+        break;
+    }
+  };
 
   const handleGeneratePdf = async () => {
     if (!letterId) return;
@@ -55,7 +70,7 @@ export default function ReviewStep() {
     try {
       setIsDownloading(true);
       
-      // Create a direct POST request to the API endpoint instead of using tRPC
+      // Create a direct POST request to the API endpoint
       const response = await fetch('/api/download-pdf', {
         method: 'POST',
         headers: {
@@ -102,89 +117,42 @@ export default function ReviewStep() {
     }
   };
 
-  const handleSwapAddresses = async () => {
-    if (!letter || !letterId) return;
-    
-    // Create temporary variables to hold original values
-    const tempName = letter.senderName;
-    const tempAddress = letter.senderAddress;
-    
-    // Update letter in state
-    setLetter({
-      ...letter,
-      senderName: letter.receiverName,
-      senderAddress: letter.receiverAddress,
-      receiverName: tempName,
-      receiverAddress: tempAddress,
-    });
-    
-    // Update letter in database
-    await updateLetterMutation.mutateAsync({
-      id: letterId,
-      senderName: letter.receiverName,
-      senderAddress: letter.receiverAddress,
-      receiverName: tempName,
-      receiverAddress: tempAddress,
-    });
-  };
-
-  const handleEditSection = (section: "addresses" | "content" | "signature") => {
-    if (section === "addresses") {
-      setCurrentStep("addresses");
-    } else if (section === "content") {
-      setCurrentStep("content");
-    } else if (section === "signature") {
-      setCurrentStep("signature");
-    }
-  };
-
   if (isLoading || !letter) {
-    return <div className="text-center">Loading letter details...</div>;
+    return <div className="text-center">Loading...</div>;
   }
 
   return (
     <div>
-      <h2 className="mb-4 text-xl font-semibold">Review Your Letter</h2>
-      <p className="mb-6 text-gray-600">
-        Review all components of your letter before generating the final document
-      </p>
-      
-      <div className="mb-6 space-y-6">
-        <div>
+      <div className="space-y-6">
+        <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-500">Address Information</h3>
-            <div className="flex items-center">
-              <button
-                onClick={handleSwapAddresses}
-                className="mr-3 text-sm text-blue-600 hover:underline"
-              >
-                Swap Addresses
-              </button>
-              <button
-                onClick={() => handleEditSection("addresses")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Edit
-              </button>
-            </div>
+            <h3 className="text-sm font-medium text-gray-500">Sender Information</h3>
+            <button
+              onClick={() => handleEditSection("sender")}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Edit
+            </button>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">From</h4>
-              <div className="text-sm">
-                <p className="font-medium">{letter.senderName}</p>
-                <p className="whitespace-pre-line">{letter.senderAddress}</p>
-              </div>
-            </div>
-            
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">To</h4>
-              <div className="text-sm">
-                <p className="font-medium">{letter.receiverName}</p>
-                <p className="whitespace-pre-line">{letter.receiverAddress}</p>
-              </div>
-            </div>
+          <div className="rounded-md border border-gray-200 bg-white p-4">
+            <p className="font-medium">{letter.senderName}</p>
+            <p className="whitespace-pre-line">{letter.senderAddress}</p>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-500">Recipient Information</h3>
+            <button
+              onClick={() => handleEditSection("recipient")}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Edit
+            </button>
+          </div>
+          <div className="rounded-md border border-gray-200 bg-white p-4">
+            <p className="font-medium">{letter.receiverName}</p>
+            <p className="whitespace-pre-line">{letter.receiverAddress}</p>
           </div>
         </div>
         
@@ -225,23 +193,20 @@ export default function ReviewStep() {
         )}
       </div>
       
-      <div className="flex justify-center space-x-4">
+      <div className="flex justify-center space-x-4 mt-8">
         <Button
-          variant="primary"
           onClick={handleGeneratePdf}
           disabled={generatePdfMutation.isPending}
-          isLoading={generatePdfMutation.isPending}
         >
-          Generate Letter PDF
+          {generatePdfMutation.isPending ? "Generating..." : "Generate Letter PDF"}
         </Button>
         
         <Button
           variant="outline"
           onClick={downloadPdfDirectly}
           disabled={isDownloading}
-          isLoading={isDownloading}
         >
-          Download PDF Directly
+          {isDownloading ? "Downloading..." : "Download PDF Directly"}
         </Button>
       </div>
     </div>

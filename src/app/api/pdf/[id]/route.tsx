@@ -1,6 +1,6 @@
 import { db } from "~/server/db";
 import { NextRequest, NextResponse } from "next/server";
-import { generatePdfFromLetter } from "~/utils/pdf-generator";
+import { generateLetterPdf } from "~/lib/pdf-service";
 
 export async function GET(
   request: NextRequest,
@@ -26,8 +26,8 @@ export async function GET(
 
     console.log('Letter found, generating PDF...');
     
-    // Generate PDF using the letter data
-    const pdfBuffer = await generatePdfFromLetter(letter);
+    // Generate PDF using the service
+    const pdfBuffer = await generateLetterPdf(letter);
 
     console.log('PDF generated successfully, size:', pdfBuffer.length);
 
