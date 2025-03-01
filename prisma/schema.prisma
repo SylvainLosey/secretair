@@ -6,22 +6,25 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for migrations
+  // Add this for PgBouncer support
+  relationMode = "prisma"
 }
 
 model Letter {
   id             String   @id @default(cuid())
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  content        String
+  content        String   @db.Text
   senderName     String
   senderAddress  String
   receiverName   String
   receiverAddress String
-  signature      String?
-  originalImage  String?
+  signature      String?  @db.Text
+  originalImage  String?  @db.Text
   pdfUrl         String?
   status         String   @default("draft")
-  userPrompt     String?
+  userPrompt     String?  @db.Text
 }
