@@ -4,9 +4,9 @@ import { generatePdfFromLetter } from "~/utils/pdf-generator";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const id = params.id;
+  const id = context.params.id;
 
   try {
     // Fetch the letter from the database
