@@ -50,11 +50,11 @@ export function Wizard() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      {/* Steps indicator - improved with better alignment and visual connection */}
+      {/* Steps indicator with proper alignment */}
       <div className="mb-10">
-        <div className="relative flex items-center justify-between">
+        <div className="relative">
           {/* Progress bar under the steps */}
-          <div className="absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 bg-gray-200">
+          <div className="absolute top-5 left-0 h-1 w-full bg-gray-200">
             <div 
               className="h-full bg-blue-600 transition-all duration-300" 
               style={{ 
@@ -64,26 +64,28 @@ export function Wizard() {
           </div>
           
           {/* Steps */}
-          {visibleSteps.map((step, index) => (
-            <div key={step} className="relative z-10 flex flex-col items-center">
-              <div 
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
-                  index <= visibleSteps.indexOf(currentStep)
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-white text-gray-500 border border-gray-300"
-                }`}
-              >
-                {index + 1}
+          <div className="relative flex justify-between">
+            {visibleSteps.map((step, index) => (
+              <div key={step} className="flex flex-col items-center">
+                <div 
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
+                    index <= visibleSteps.indexOf(currentStep)
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white text-gray-500 border border-gray-300"
+                  }`}
+                >
+                  {index + 1}
+                </div>
+                <span 
+                  className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
+                    index <= visibleSteps.indexOf(currentStep) ? "text-blue-600" : "text-gray-500"
+                  }`}
+                >
+                  {step.charAt(0).toUpperCase() + step.slice(1)}
+                </span>
               </div>
-              <span 
-                className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
-                  index <= visibleSteps.indexOf(currentStep) ? "text-blue-600" : "text-gray-500"
-                }`}
-              >
-                {step.charAt(0).toUpperCase() + step.slice(1)}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
