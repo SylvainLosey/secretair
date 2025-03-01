@@ -2,18 +2,21 @@
 
 // src/components/steps/ReviewStep.tsx
 import { useEffect, useState } from "react";
-import { useWizardStore } from "~/lib/store";
-import { api } from "~/utils/api";
+import { useWizardStore, type WizardStep } from "~/lib/store";
+import { api, type RouterOutputs } from "~/utils/api";
 import { useRouter } from "next/navigation";
+
+// Define Letter type based on router output
+type Letter = RouterOutputs["letter"]["getLetter"];
 
 export default function ReviewStep() {
   const router = useRouter();
   const { letterId, resetWizard, setCurrentStep } = useWizardStore();
   const [isLoading, setIsLoading] = useState(true);
-  const [letter, setLetter] = useState<any>(null);
+  const [letter, setLetter] = useState<Letter | null>(null);
   
   const letterQuery = api.letter.getLetter.useQuery(
-    { id: letterId! },
+    { id: letterId ?? "" },
     { enabled: !!letterId }
   );
   
@@ -41,9 +44,10 @@ export default function ReviewStep() {
         resetWizard();
         router.push("/");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to generate PDF: ${errorMessage}`);
     }
   };
 
@@ -79,9 +83,10 @@ export default function ReviewStep() {
         resetWizard();
         router.push("/");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error downloading PDF:", error);
-      alert("Failed to download PDF. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to download PDF: ${errorMessage}`);
     }
   };
 
@@ -111,18 +116,20 @@ export default function ReviewStep() {
     });
   };
 
-  const handleEditSection = (section: string) => {
-    if (section === "addresses") {
-      setCurrentStep("addresses");
-    } else if (section === "content") {
-      setCurrentStep("content");
-    } else if (section === "signature") {
-      setCurrentStep("signature");
+  const handleEditSection = (section: WizardStep) => {
+    // We're now using the WizardStep type directly
+    if (section === "addresses" || section === "content" || section === "signature") {
+      setCurrentStep(section);
     }
   };
 
   if (isLoading) {
     return <div className="text-center">Loading letter details...</div>;
+  }
+
+  // Make sure letter is not null before rendering
+  if (!letter) {
+    return <div className="text-center">Letter not found</div>;
   }
 
   return (

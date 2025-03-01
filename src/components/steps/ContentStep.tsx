@@ -66,7 +66,7 @@ export default function ContentStep() {
       />
       
       <div className="mt-2 text-right text-sm text-gray-500">
-        {updateLetterMutation.isLoading ? "Saving..." : "Changes auto-saved"}
+        {updateLetterMutation.isPending ? "Saving..." : "Changes auto-saved"}
       </div>
     </div>
   );
