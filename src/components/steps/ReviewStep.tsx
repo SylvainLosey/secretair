@@ -31,13 +31,57 @@ export default function ReviewStep() {
     if (!letterId) return;
     
     try {
-      await generatePdfMutation.mutateAsync({ id: letterId });
-      // In a real app, you might redirect to the PDF or show a success message
-      alert("PDF generated! In a real app, you'd go to payment here.");
-      resetWizard();
-      router.push("/");
+      const result = await generatePdfMutation.mutateAsync({ id: letterId });
+      
+      if (result.success) {
+        // For direct download, we'll open the PDF URL in a new tab
+        window.open(`/api/pdf/${letterId}`, '_blank');
+        
+        alert("PDF generated successfully! In a real app, you'd go to payment here.");
+        resetWizard();
+        router.push("/");
+      }
     } catch (error) {
       console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
+  };
+
+  const downloadPdfDirectly = async () => {
+    if (!letterId) return;
+    
+    try {
+      // This calls our new tRPC procedure that returns PDF content
+      const pdfResult = await api.letter.getPdfContent.query({ id: letterId });
+      
+      if (pdfResult.success) {
+        // Convert base64 string back to bytes
+        const byteCharacters = atob(pdfResult.pdfBytes);
+        const byteNumbers = new Array(byteCharacters.length);
+        
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        
+        // Create a download link
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = pdfResult.fileName;
+        link.click();
+        
+        // Clean up
+        URL.revokeObjectURL(link.href);
+        
+        // Continue with the workflow
+        resetWizard();
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Failed to download PDF. Please try again.");
     }
   };
 
@@ -164,13 +208,20 @@ export default function ReviewStep() {
         )}
       </div>
       
-      <div className="flex justify-center">
+      <div className="flex justify-center space-x-4">
         <button
           onClick={handleGeneratePdf}
           disabled={generatePdfMutation.isLoading}
           className="rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:bg-blue-300"
         >
           {generatePdfMutation.isLoading ? "Preparing..." : "Generate Letter PDF"}
+        </button>
+        
+        <button
+          onClick={downloadPdfDirectly}
+          className="rounded-md bg-green-600 px-6 py-2 text-white hover:bg-green-700"
+        >
+          Download PDF Directly
         </button>
       </div>
     </div>
