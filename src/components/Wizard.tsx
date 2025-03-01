@@ -30,27 +30,23 @@ export function Wizard() {
     }
   };
 
-  const currentIndex = visibleSteps.indexOf(currentStep);
-  const isFirstStep = currentIndex === 0;
-  const isLastStep = currentIndex === visibleSteps.length - 1;
-
-  const goToNextStep = () => {
-    const nextStep = visibleSteps[currentIndex + 1];
-    if (nextStep) {
+  const navigateStep = (direction: 'next' | 'previous') => {
+    if (!currentStep || visibleSteps.length === 0) return;
+    
+    const currentIndex = visibleSteps.indexOf(currentStep);
+    if (currentIndex === -1) return;
+    
+    const targetIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    
+    if (targetIndex >= 0 && targetIndex < visibleSteps.length) {
       setIsNavigating(true);
-      setCurrentStep(nextStep);
+      setCurrentStep(visibleSteps[targetIndex]);
       setIsNavigating(false);
     }
   };
 
-  const goToPreviousStep = () => {
-    const prevStep = visibleSteps[currentIndex - 1];
-    if (prevStep) {
-      setIsNavigating(true);
-      setCurrentStep(prevStep);
-      setIsNavigating(false);
-    }
-  };
+  const goToNextStep = () => navigateStep('next');
+  const goToPreviousStep = () => navigateStep('previous');
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -62,7 +58,7 @@ export function Wizard() {
             <div 
               className="h-full bg-blue-600 transition-all duration-300" 
               style={{ 
-                width: `${(currentIndex / (visibleSteps.length - 1)) * 100}%` 
+                width: `${(visibleSteps.indexOf(currentStep) / (visibleSteps.length - 1)) * 100}%` 
               }}
             ></div>
           </div>
@@ -72,7 +68,7 @@ export function Wizard() {
             <div key={step} className="relative z-10 flex flex-col items-center">
               <div 
                 className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
-                  index <= currentIndex
+                  index <= visibleSteps.indexOf(currentStep)
                     ? "bg-blue-600 text-white shadow-md"
                     : "bg-white text-gray-500 border border-gray-300"
                 }`}
@@ -81,7 +77,7 @@ export function Wizard() {
               </div>
               <span 
                 className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
-                  index <= currentIndex ? "text-blue-600" : "text-gray-500"
+                  index <= visibleSteps.indexOf(currentStep) ? "text-blue-600" : "text-gray-500"
                 }`}
               >
                 {step.charAt(0).toUpperCase() + step.slice(1)}
@@ -102,8 +98,8 @@ export function Wizard() {
           <Button
             variant="secondary"
             onClick={goToPreviousStep}
-            disabled={isFirstStep || isNavigating}
-            className={isFirstStep ? "invisible" : ""}
+            disabled={visibleSteps.indexOf(currentStep) === 0 || isNavigating}
+            className={visibleSteps.indexOf(currentStep) === 0 ? "invisible" : ""}
           >
             Back
           </Button>
@@ -111,8 +107,8 @@ export function Wizard() {
           <Button
             variant="primary"
             onClick={goToNextStep}
-            disabled={isLastStep || isNavigating}
-            className={isLastStep ? "invisible" : ""}
+            disabled={visibleSteps.indexOf(currentStep) === visibleSteps.length - 1 || isNavigating}
+            className={visibleSteps.indexOf(currentStep) === visibleSteps.length - 1 ? "invisible" : ""}
             isLoading={isNavigating}
           >
             Next

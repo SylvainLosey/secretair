@@ -8,10 +8,10 @@ export function useAutoSave<T>(
   isLoading = false
 ) {
   useEffect(() => {
+    if (isLoading) return;
+    
     const timer = setTimeout(() => {
-      if (!isLoading) {
-        void saveFunction();
-      }
+      void saveFunction();
     }, delay);
     
     return () => clearTimeout(timer);
