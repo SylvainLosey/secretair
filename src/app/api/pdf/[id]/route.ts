@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    // Generate PDF using the letter data
+    // Generate PDF using the consolidated function
     const pdfBuffer = await generatePdfFromLetter(letter);
 
     // Set response headers

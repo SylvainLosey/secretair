@@ -5,26 +5,16 @@ import { type RouterOutputs } from "~/utils/api";
 type Letter = RouterOutputs["letter"]["getLetter"];
 
 export function determineVisibleSteps(letter: Letter): WizardStep[] {
-  // Always include upload and review steps
-  const steps: WizardStep[] = ["upload", "review"];
+  // Base steps that are always shown
+  const steps: WizardStep[] = ["upload", "content", "signature", "review"];
   
-  // Content step is always needed
-  steps.splice(1, 0, "content");
-  
-  // If sender or receiver info is missing or incomplete, add addresses step
-  const needsAddressStep = !letter.senderName || 
-                          !letter.senderAddress || 
-                          !letter.receiverName || 
-                          !letter.receiverAddress ||
-                          letter.senderAddress.trim() === "" ||
-                          letter.receiverAddress.trim() === "";
-  
-  if (needsAddressStep) {
+  // Only add addresses step if any address field is missing or empty
+  if (!letter.senderName?.trim() || 
+      !letter.senderAddress?.trim() || 
+      !letter.receiverName?.trim() || 
+      !letter.receiverAddress?.trim()) {
     steps.splice(2, 0, "addresses");
   }
-  
-  // Always include signature step before review
-  steps.splice(steps.length - 1, 0, "signature");
   
   return steps;
 }

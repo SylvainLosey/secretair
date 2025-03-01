@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate PDF using the letter data
+    // Generate PDF using the consolidated function
     const pdfBuffer = await generatePdfFromLetter(letter);
     
     // Convert PDF buffer to base64

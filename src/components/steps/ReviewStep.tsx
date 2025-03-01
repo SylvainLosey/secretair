@@ -53,18 +53,15 @@ export default function ReviewStep() {
     }
   };
 
-  const downloadPdfDirectly = async () => {
+  const downloadPdf = async () => {
     if (!letterId) return;
     
     try {
       setIsDownloading(true);
       
-      // Create a direct POST request to the API endpoint instead of using tRPC
       const response = await fetch('/api/download-pdf', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: letterId }),
       });
       
@@ -75,7 +72,7 @@ export default function ReviewStep() {
       const result = await response.json();
       
       if (result.success) {
-        // Convert base64 string back to bytes
+        // Convert base64 to blob and download
         const byteCharacters = atob(result.pdfBytes);
         const byteNumbers = new Array(byteCharacters.length);
         
@@ -86,14 +83,16 @@ export default function ReviewStep() {
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: 'application/pdf' });
         
-        // Create a download link
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = result.fileName || "letter.pdf";
         link.click();
         
-        // Clean up
         URL.revokeObjectURL(link.href);
+        
+        // Navigate home after successful download
+        resetWizard();
+        router.push("/");
       } else {
         throw new Error(result.message || "Failed to get PDF content");
       }
@@ -229,23 +228,14 @@ export default function ReviewStep() {
         )}
       </div>
       
-      <div className="flex justify-center space-x-4">
-        <Button
-          variant="primary"
-          onClick={handleGeneratePdf}
-          disabled={generatePdfMutation.isPending}
-          isLoading={generatePdfMutation.isPending}
-        >
-          Generate Letter PDF
-        </Button>
-        
+      <div className="flex justify-center space-x-4">        
         <Button
           variant="outline"
-          onClick={downloadPdfDirectly}
+          onClick={downloadPdf}
           disabled={isDownloading}
           isLoading={isDownloading}
         >
-          Download PDF Directly
+          Download PDF
         </Button>
       </div>
     </div>

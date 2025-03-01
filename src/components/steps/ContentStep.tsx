@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
+import { useAutoSave } from "~/hooks/useAutoSave";
+import { StepLayout } from "~/components/ui/StepLayout";
 
 export default function ContentStep() {
   const { letterId } = useWizardStore();
@@ -36,38 +38,31 @@ export default function ContentStep() {
     });
   };
 
-  // Auto-save when content changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (content && letterId && !isLoading) {
-        saveContent();
-      }
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [content, letterId, isLoading]);
-
-  if (isLoading) {
-    return <div className="text-center">Loading letter content...</div>;
-  }
+  useAutoSave(
+    content,
+    saveContent,
+    [content, letterId],
+    1000,
+    isLoading
+  );
 
   return (
-    <div>
-      <h2 className="mb-4 text-xl font-semibold">Edit Letter Content</h2>
-      <p className="mb-4 text-gray-600">
-        Review and edit the content of your letter
-      </p>
-      
+    <StepLayout
+      title="Edit Letter Content"
+      description="Review and edit the content of your letter"
+      isLoading={isLoading}
+      loadingMessage="Loading letter content..."
+    >
       <textarea
         value={content}
         onChange={handleContentChange}
-        className="w-full min-h-[300px] p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        className="min-h-[300px] w-full rounded-lg border border-gray-300 p-4 focus:border-blue-500 focus:ring-blue-500"
         placeholder="Enter your letter content here..."
       />
       
       <div className="mt-2 text-right text-sm text-gray-500">
         {updateLetterMutation.isPending ? "Saving..." : "Changes auto-saved"}
       </div>
-    </div>
+    </StepLayout>
   );
 }
