@@ -13,7 +13,7 @@ export default function SignatureStep() {
   const [isLoading, setIsLoading] = useState(true);
   
   const letterQuery = api.letter.getLetter.useQuery(
-    { id: letterId! },
+    { id: letterId ?? "" },
     { enabled: !!letterId }
   );
   

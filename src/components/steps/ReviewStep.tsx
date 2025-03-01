@@ -56,7 +56,7 @@ export default function ReviewStep() {
     
     try {
       // This calls our new tRPC procedure that returns PDF content
-      const pdfResult = await api.letter.getPdfContent.query({ id: letterId });
+      const pdfResult = await api.letter.getPdfContent({ id: letterId });
       
       if (pdfResult.success) {
         // Convert base64 string back to bytes

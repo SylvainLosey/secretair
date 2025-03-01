@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { determineVisibleSteps } from "~/utils/wizard-helpers";
+import { Input } from "~/components/ui/Input";
 
 export default function UploadStep() {
   const [isUploading, setIsUploading] = useState(false);
@@ -91,31 +92,27 @@ export default function UploadStep() {
   });
 
   return (
-    <div className="text-center">
-      <h2 className="mb-4 text-xl font-semibold">Upload Your Letter</h2>
-      <p className="mb-6 text-gray-600">
+    <div className="flex flex-col items-center">
+      <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">Upload Your Letter</h2>
+      <p className="mb-8 text-center text-gray-600">
         Take a photo of the letter you received or want to respond to
       </p>
       
-      {/* Add prompt input field */}
-      <div className="mb-6">
-        <label htmlFor="letterPrompt" className="mb-1 block text-sm font-medium text-gray-700">
-          What would you like to do with this letter?
-        </label>
-        <input
-          id="letterPrompt"
-          type="text"
+      <div className="mb-6 w-full">
+        <Input
+          label="What would you like to do with this letter?"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="E.g., Cancel this credit card"
-          className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-blue-500"
+          placeholder="e.g., Cancel this credit card, Request a refund..."
         />
       </div>
       
       <div
         {...getRootProps()}
-        className={`mx-auto mb-4 flex h-64 w-full max-w-lg cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 ${
-          isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+        className={`group relative mb-6 flex h-72 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${
+          isDragActive 
+            ? "border-blue-500 bg-blue-50" 
+            : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
         }`}
       >
         <input {...getInputProps()} />
@@ -127,64 +124,82 @@ export default function UploadStep() {
               alt="Uploaded letter"
               className="h-full w-full object-contain"
             />
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity group-hover:opacity-100">
+              <p className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                Click or drop to replace
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="text-center">
-            <svg
-              className="mx-auto mb-2 h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-            <p className="text-gray-500">
+          <div className="text-center p-6">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+              <svg
+                className="h-8 w-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-gray-700 mb-1">
               {isDragActive
                 ? "Drop the image here"
-                : "Drag and drop an image, or click to select"}
+                : "Drag and drop your letter image"}
+            </p>
+            <p className="text-sm text-gray-500">
+              or click to browse files (JPG, PNG, GIF)
             </p>
           </div>
         )}
       </div>
       
       {isUploading && (
-        <div className="mt-4 text-blue-600">
+        <div className="mb-4 flex items-center text-blue-600">
+          <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
           Uploading your letter...
-          <div className="mx-auto mt-2 h-1 w-24 animate-pulse rounded bg-blue-600"></div>
         </div>
       )}
       
       {error && (
-        <div className="mt-4 text-red-600">
-          {error}
+        <div className="mb-4 rounded-lg bg-red-50 p-3 text-red-600">
+          <div className="flex">
+            <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+            </svg>
+            {error}
+          </div>
         </div>
       )}
       
       {/* Next button that triggers analysis */}
-      <div className="mt-6">
-        <button
-          onClick={handleNextStep}
-          disabled={!preview || isAnalyzing}
-          className={`rounded-md ${
-            preview ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-300 cursor-not-allowed"
-          } px-6 py-2 text-white disabled:opacity-50`}
-        >
-          {isAnalyzing ? (
-            <>
-              <span className="mr-2">Analyzing your letter...</span>
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-            </>
-          ) : (
-            "Next"
-          )}
-        </button>
-      </div>
+      <button
+        onClick={handleNextStep}
+        disabled={!preview || isAnalyzing}
+        className={`mt-2 w-full rounded-lg px-6 py-3 font-medium text-white transition-all ${
+          preview && !isAnalyzing
+            ? "bg-blue-600 shadow-lg hover:bg-blue-700 hover:shadow-xl"
+            : "bg-gray-300 cursor-not-allowed"
+        } disabled:opacity-50`}
+      >
+        {isAnalyzing ? (
+          <div className="flex items-center justify-center">
+            <span className="mr-2">Analyzing your letter...</span>
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+          </div>
+        ) : (
+          "Continue"
+        )}
+      </button>
     </div>
   );
 }

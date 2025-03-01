@@ -1,7 +1,10 @@
 // src/utils/wizard-helpers.ts
 import { type WizardStep } from "~/lib/store";
+import { type RouterOutputs } from "~/utils/api";
 
-export function determineVisibleSteps(letter: any): WizardStep[] {
+type Letter = RouterOutputs["letter"]["getLetter"];
+
+export function determineVisibleSteps(letter: Letter): WizardStep[] {
   // Always include upload and review steps
   const steps: WizardStep[] = ["upload", "review"];
   

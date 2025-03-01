@@ -7,6 +7,7 @@ import ContentStep from "./steps/ContentStep";
 import AddressesStep from "./steps/AddressesStep";
 import SignatureStep from "./steps/SignatureStep";
 import ReviewStep from "./steps/ReviewStep";
+import { Button } from "./ui/Button";
 
 export function Wizard() {
   const { currentStep, visibleSteps, setCurrentStep } = useWizardStore();
@@ -52,79 +53,70 @@ export function Wizard() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl">
-      {/* Steps indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      {/* Steps indicator - improved with better alignment and visual connection */}
+      <div className="mb-10">
+        <div className="relative flex items-center justify-between">
+          {/* Progress bar under the steps */}
+          <div className="absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 bg-gray-200">
+            <div 
+              className="h-full bg-blue-600 transition-all duration-300" 
+              style={{ 
+                width: `${(currentIndex / (visibleSteps.length - 1)) * 100}%` 
+              }}
+            ></div>
+          </div>
+          
+          {/* Steps */}
           {visibleSteps.map((step, index) => (
-            <React.Fragment key={step}>
-              <div className="flex flex-col items-center">
-                <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                    index <= currentIndex ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                <span
-                  className={`mt-2 text-sm ${
-                    index <= currentIndex ? "text-blue-600" : "text-gray-400"
-                  }`}
-                >
-                  {step.charAt(0).toUpperCase() + step.slice(1)}
-                </span>
+            <div key={step} className="relative z-10 flex flex-col items-center">
+              <div 
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
+                  index <= currentIndex
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-white text-gray-500 border border-gray-300"
+                }`}
+              >
+                {index + 1}
               </div>
-              
-              {index < visibleSteps.length - 1 && (
-                <div
-                  className={`h-1 w-16 ${
-                    index < currentIndex ? "bg-blue-600" : "bg-gray-200"
-                  }`}
-                ></div>
-              )}
-            </React.Fragment>
+              <span 
+                className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
+                  index <= currentIndex ? "text-blue-600" : "text-gray-500"
+                }`}
+              >
+                {step.charAt(0).toUpperCase() + step.slice(1)}
+              </span>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Step content */}
-      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      {/* Step content - improved card with better shadow and spacing */}
+      <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white p-8 shadow-lg">
         {renderStep()}
       </div>
 
-      {/* Navigation buttons */}
-      {currentStep !== "upload" && ( // Skip showing buttons on Upload step since it has its own
+      {/* Navigation buttons - using our new Button component */}
+      {currentStep !== "upload" && (
         <div className="flex justify-between">
-          <button
+          <Button
+            variant="secondary"
             onClick={goToPreviousStep}
             disabled={isFirstStep || isNavigating}
-            className={`rounded-md px-4 py-2 ${
-              isFirstStep
-                ? "invisible"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            } disabled:opacity-50`}
+            className={isFirstStep ? "invisible" : ""}
           >
             Back
-          </button>
+          </Button>
           
-          <button
+          <Button
+            variant="primary"
             onClick={goToNextStep}
             disabled={isLastStep || isNavigating}
-            className={`rounded-md px-4 py-2 ${
-              isLastStep
-                ? "invisible"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            } disabled:opacity-50`}
+            className={isLastStep ? "invisible" : ""}
+            isLoading={isNavigating}
           >
-            {isNavigating ? (
-              <>
-                <span className="mr-2">Loading...</span>
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-              </>
-            ) : (
-              "Next"
-            )}
-          </button>
+            Next
+          </Button>
         </div>
       )}
     </div>
