@@ -40,7 +40,7 @@ export function Wizard() {
     
     if (targetIndex >= 0 && targetIndex < visibleSteps.length) {
       setIsNavigating(true);
-      setCurrentStep(visibleSteps[targetIndex]);
+      setCurrentStep(visibleSteps[targetIndex]!);
       setIsNavigating(false);
     }
   };

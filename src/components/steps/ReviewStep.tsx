@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { useWizardStore, type WizardStep } from "~/lib/store";
 import { api, type RouterOutputs } from "~/utils/api";
-import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/Button";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { SuccessMessage } from "~/components/ui/SuccessMessage";
@@ -14,8 +13,7 @@ import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 type Letter = RouterOutputs["letter"]["getLetter"];
 
 export default function ReviewStep() {
-  const router = useRouter();
-  const { letterId, resetWizard, setCurrentStep } = useWizardStore();
+  const { letterId, setCurrentStep } = useWizardStore();
   const [isLoading, setIsLoading] = useState(true);
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -28,7 +26,6 @@ export default function ReviewStep() {
   );
   
   const updateLetterMutation = api.letter.updateLetter.useMutation();
-  const generatePdfMutation = api.letter.generatePdf.useMutation();
 
   useEffect(() => {
     if (letterQuery.data) {
@@ -37,26 +34,7 @@ export default function ReviewStep() {
     }
   }, [letterQuery.data]);
 
-  const handleGeneratePdf = async () => {
-    if (!letterId) return;
-    
-    try {
-      const result = await generatePdfMutation.mutateAsync({ id: letterId });
-      
-      if (result.success) {
-        // For direct download, we'll open the PDF URL in a new tab
-        window.open(`/api/pdf/${letterId}`, '_blank');
-        
-        alert("PDF generated successfully! In a real app, you'd go to payment here.");
-        resetWizard();
-        router.push("/");
-      }
-    } catch (error: unknown) {
-      console.error("Error generating PDF:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      alert(`Failed to generate PDF: ${errorMessage}`);
-    }
-  };
+
 
   const downloadPdf = async () => {
     if (!letterId) return;
