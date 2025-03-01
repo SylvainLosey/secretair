@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { supabase } from '~/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -59,8 +60,6 @@ export async function uploadImage(
       if (error) {
         console.error('Error uploading to Supabase:', {
           message: error.message,
-          status: error.status,
-          details: error.details,
           name: error.name
         });
         return null;

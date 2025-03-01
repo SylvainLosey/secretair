@@ -1,0 +1,31 @@
+{
+  "$id": "http://json.schemastore.org/package",
+  "$schema": "http://json.schemastore.org/schema.json",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "private": { "type": "boolean" },
+    "type": { "type": "string" },
+    "scripts": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "devDependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "ct3aMetadata": {
+      "type": "object",
+      "properties": {
+        "initVersion": { "type": "string" }
+      }
+    },
+    "packageManager": { "type": "string" }
+  },
+  "required": ["name", "version"]
+} 

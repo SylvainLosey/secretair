@@ -1,4 +1,5 @@
 {
+  "$schema": "./package-schema.json",
   "name": "secretair",
   "version": "0.1.0",
   "private": true,

@@ -4,7 +4,14 @@
  */
 import "./src/env.js";
 
-/** @type {import("next").NextConfig} */
-const config = {};
+/** @type {import('next').NextConfig} */
+const config = {
+  reactStrictMode: true,
+  images: {
+    domains: [
+      'yrdmxkihiticmqqoicpe.supabase.co',
+    ],
+  },
+};
 
 export default config;
