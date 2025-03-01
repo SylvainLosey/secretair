@@ -41,10 +41,6 @@ export default function ReviewStep() {
       if (result.success) {
         // For direct download, we'll open the PDF URL in a new tab
         window.open(`/api/pdf/${letterId}`, '_blank');
-        
-        alert("PDF generated successfully! In a real app, you'd go to payment here.");
-        resetWizard();
-        router.push("/");
       }
     } catch (error: unknown) {
       console.error("Error generating PDF:", error);
