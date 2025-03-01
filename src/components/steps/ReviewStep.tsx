@@ -31,7 +31,7 @@ export default function ReviewStep() {
     if (!letterId) return;
     
     try {
-      const result = await generatePdfMutation.mutateAsync({ id: letterId });
+      await generatePdfMutation.mutateAsync({ id: letterId });
       // In a real app, you might redirect to the PDF or show a success message
       alert("PDF generated! In a real app, you'd go to payment here.");
       resetWizard();
