@@ -1,4 +1,3 @@
-// src/lib/store.ts
 import { create } from "zustand";
 
 export type WizardStep = "upload" | "content" | "addresses" | "signature" | "review";

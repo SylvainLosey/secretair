@@ -3,17 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL") // Used for migrations
-  // Add this for PgBouncer support
   relationMode = "prisma"
-  // Add this to disable prepared statements
-  extensions = [pgbouncer]
 }
 
 model Letter {
@@ -25,8 +21,8 @@ model Letter {
   senderAddress  String
   receiverName   String
   receiverAddress String
-  signature      String?  @db.Text
-  originalImage  String?  @db.Text
+  signature      String?  // Will store a URL now
+  originalImage  String?  // Will store a URL now
   pdfUrl         String?
   status         String   @default("draft")
   userPrompt     String?  @db.Text

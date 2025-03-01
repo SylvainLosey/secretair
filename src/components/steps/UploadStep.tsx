@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/Button";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import Image from "next/image";
+import { uploadImage } from '~/utils/supabase-storage';
 
 export default function UploadStep() {
   const [isUploading, setIsUploading] = useState(false);
@@ -17,7 +18,8 @@ export default function UploadStep() {
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string>("Cancel this credit card"); // Default prompt
-  const { setLetterId, setCurrentStep, setVisibleSteps } = useWizardStore();
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const { setLetterId, setCurrentStep, setVisibleSteps, } = useWizardStore();
   
   const createLetterMutation = api.letter.create.useMutation();
   const analyzeImageMutation = api.letter.analyzeImage.useMutation();
@@ -34,50 +36,83 @@ export default function UploadStep() {
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     
-    setIsUploading(true);
-    setError(null);
-    const file = acceptedFiles[0];
-    
-    // Add this check to satisfy TypeScript
-    if (!file) return;
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        setPreview(reader.result as string);
+    try {
+      setIsUploading(true);
+      setError(null);
+      
+      const file = acceptedFiles[0];
+      
+      if (file) {
+        // Create preview for display
+        const objectUrl = URL.createObjectURL(file);
+        setPreview(objectUrl);
         
-        // Create letter entry first with the user's prompt, but don't analyze yet
-        const letter = await createLetterMutation.mutateAsync({
-          originalImage: reader.result as string,
-          userPrompt: prompt,
-        });
-        setLetterId(letter.id);
-        setIsUploading(false);
-      } catch (err) {
-        handleError(err, "Failed to process image");
+        // Store uploaded URL for later use
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const dataUrl = reader.result as string;
+            
+            // Upload to Supabase and get public URL
+            const imageUrl = await uploadImage(dataUrl);
+            
+            if (!imageUrl) {
+              throw new Error('Failed to upload image to storage');
+            }
+            
+            // Save the URL in state for later use
+            setUploadedImageUrl(imageUrl);
+            
+            // Create a new letter with the Supabase URL
+            const letter = await createLetterMutation.mutateAsync({
+              originalImage: imageUrl,
+              userPrompt: prompt
+            });
+            
+            setLetterId(letter.id);
+            
+            // Clean up the object URL
+            URL.revokeObjectURL(objectUrl);
+            setIsUploading(false);
+          } catch (error) {
+            handleError(error, "Error processing image");
+            URL.revokeObjectURL(objectUrl);
+          }
+        };
+        
+        reader.onerror = () => {
+          handleError(new Error("Error reading file"), "File reading error");
+          URL.revokeObjectURL(objectUrl);
+        };
+        
+        reader.readAsDataURL(file);
+      } else {
+        throw new Error("No valid file selected");
       }
-    };
-    reader.onerror = () => {
-      handleError(new Error("Failed to read the image file"), "Failed to read the image file");
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      handleError(error, "Error uploading image");
+    }
   }, [createLetterMutation, setLetterId, prompt]);
 
   const handleNextStep = async () => {
     const letterId = useWizardStore.getState().letterId;
-    if (!letterId || !preview) {
+    if (!letterId) {
       setError("Please upload an image first");
+      return;
+    }
+    
+    if (!uploadedImageUrl) {
+      setError("Image URL not found");
       return;
     }
     
     try {
       setIsAnalyzing(true);
       
-      // Now perform the analysis with the prompt
+      // Use the stored uploadedImageUrl from state
       const updatedLetter = await analyzeImageMutation.mutateAsync({
         letterId: letterId,
-        imageData: preview,
+        imageData: uploadedImageUrl,
         userPrompt: prompt,
       });
       

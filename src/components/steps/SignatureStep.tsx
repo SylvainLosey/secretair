@@ -8,6 +8,7 @@ import { api } from "~/utils/api";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { Button } from "~/components/ui/Button";
 import Image from "next/image";
+import { uploadImage } from '~/utils/supabase-storage';
 
 export default function SignatureStep() {
   const { letterId } = useWizardStore();
@@ -38,15 +39,30 @@ export default function SignatureStep() {
     }
   };
 
-  const saveSignature = () => {
+  const saveSignature = async () => {
     if (sigCanvas.current && !sigCanvas.current.isEmpty() && letterId) {
-      const signatureDataUrl = sigCanvas.current.toDataURL('image/png');
-      setSignature(signatureDataUrl);
-      
-      updateLetterMutation.mutate({
-        id: letterId,
-        signature: signatureDataUrl,
-      });
+      try {
+        const signatureDataUrl = sigCanvas.current.toDataURL('image/png');
+        
+        // Upload to Supabase
+        const signatureUrl = await uploadImage(signatureDataUrl, 'signatures');
+        
+        if (!signatureUrl) {
+          throw new Error('Failed to upload signature');
+        }
+        
+        // Save the URL in your database
+        await updateLetterMutation.mutateAsync({
+          id: letterId,
+          signature: signatureUrl,
+        });
+        
+        // Update local state with the URL
+        setSignature(signatureUrl);
+      } catch (error) {
+        console.error('Error saving signature:', error instanceof Error ? error.message : String(error));
+        // Add error handling UI if needed
+      }
     }
   };
 
