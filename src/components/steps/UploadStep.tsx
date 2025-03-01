@@ -6,6 +6,7 @@ import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { determineVisibleSteps } from "~/utils/wizard-helpers";
 import { Input } from "~/components/ui/Input";
+import { Button } from "~/components/ui/Button";
 
 export default function UploadStep() {
   const [isUploading, setIsUploading] = useState(false);
@@ -182,24 +183,15 @@ export default function UploadStep() {
       )}
       
       {/* Next button that triggers analysis */}
-      <button
+      <Button 
+        variant="primary"
         onClick={handleNextStep}
         disabled={!preview || isAnalyzing}
-        className={`mt-2 w-full rounded-lg px-6 py-3 font-medium text-white transition-all ${
-          preview && !isAnalyzing
-            ? "bg-blue-600 shadow-lg hover:bg-blue-700 hover:shadow-xl"
-            : "bg-gray-300 cursor-not-allowed"
-        } disabled:opacity-50`}
+        isLoading={isAnalyzing}
+        fullWidth
       >
-        {isAnalyzing ? (
-          <div className="flex items-center justify-center">
-            <span className="mr-2">Analyzing your letter...</span>
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-          </div>
-        ) : (
-          "Continue"
-        )}
-      </button>
+        Continue
+      </Button>
     </div>
   );
 }
