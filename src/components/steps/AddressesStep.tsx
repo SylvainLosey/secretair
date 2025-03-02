@@ -7,6 +7,7 @@ import { api } from "~/utils/api";
 import { useAutoSave } from "~/hooks/useAutoSave";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { Input } from "~/components/ui/Input";
+import { ErrorMessage } from "~/components/ui/ErrorMessage";
 
 export default function AddressesStep() {
   const { letterId } = useWizardStore();
@@ -45,7 +46,7 @@ export default function AddressesStep() {
     });
   };
 
-  useAutoSave(
+  const { saveStatus, errorMessage } = useAutoSave(
     { senderName, senderAddress, receiverName, receiverAddress },
     saveAddresses,
     [senderName, senderAddress, receiverName, receiverAddress, letterId],
@@ -104,8 +105,11 @@ export default function AddressesStep() {
         </div>
       </div>
 
-      <div className="mt-2 text-right text-sm text-gray-500">
-        {updateLetterMutation.isPending ? "Saving..." : "Changes auto-saved"}
+      {errorMessage && <ErrorMessage message={errorMessage} />}
+      
+      <div className="mt-2 text-right text-sm">
+        {saveStatus === 'saved' && <span className="text-green-500">Changes saved</span>}
+        {saveStatus === 'error' && <span className="text-red-500">Save error</span>}
       </div>
     </StepLayout>
   );

@@ -8,15 +8,21 @@ export function determineVisibleSteps(letter: Letter | null): WizardStep[] {
   // Base steps that are always shown
   const steps: WizardStep[] = ["upload", "content", "signature", "review"];
   
-  // Only add addresses step if any address field is missing or empty
-  if (letter && (
-      !letter.senderName?.trim() || 
-      !letter.senderAddress?.trim() || 
-      !letter.receiverName?.trim() || 
-      !letter.receiverAddress?.trim()
-    )) {
+  // Check if we need to collect addresses
+  if (!letter || 
+      !hasCompleteAddresses(letter)) {
     steps.splice(2, 0, "addresses");
   }
   
   return steps;
+}
+
+// Extract the address validation to a separate function for clarity and reuse
+function hasCompleteAddresses(letter: Letter): boolean {
+  return !!(
+    letter.senderName?.trim() && 
+    letter.senderAddress?.trim() && 
+    letter.receiverName?.trim() && 
+    letter.receiverAddress?.trim()
+  );
 }

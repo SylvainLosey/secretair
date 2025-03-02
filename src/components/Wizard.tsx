@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useWizardStore } from "~/lib/store";
 import UploadStep from "./steps/UploadStep";
 import ContentStep from "./steps/ContentStep";
@@ -8,12 +8,22 @@ import AddressesStep from "./steps/AddressesStep";
 import SignatureStep from "./steps/SignatureStep";
 import ReviewStep from "./steps/ReviewStep";
 import { Button } from "./ui/Button";
+import { LoadingSpinner } from "./ui/LoadingSpinner";
 
 export function Wizard() {
-  const { currentStep, visibleSteps, setCurrentStep } = useWizardStore();
+  const { currentStep, visibleSteps, goToNextStep, goToPreviousStep } = useWizardStore();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const renderStep = () => {
+    if (isTransitioning) {
+      return (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner size="lg" message="Loading next step..." />
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case "upload":
         return <UploadStep />;
@@ -30,23 +40,18 @@ export function Wizard() {
     }
   };
 
-  const navigateStep = (direction: 'next' | 'previous') => {
-    if (!currentStep || visibleSteps.length === 0) return;
+  useEffect(() => {
+    // Subscribe to the entire store state
+    const unsubscribe = useWizardStore.subscribe((state, prevState) => {
+      // Check if the currentStep changed
+      if (state.currentStep !== prevState.currentStep) {
+        setIsTransitioning(true);
+        setTimeout(() => setIsTransitioning(false), 300);
+      }
+    });
     
-    const currentIndex = visibleSteps.indexOf(currentStep);
-    if (currentIndex === -1) return;
-    
-    const targetIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
-    
-    if (targetIndex >= 0 && targetIndex < visibleSteps.length) {
-      setIsNavigating(true);
-      setCurrentStep(visibleSteps[targetIndex]!);
-      setIsNavigating(false);
-    }
-  };
-
-  const goToNextStep = () => navigateStep('next');
-  const goToPreviousStep = () => navigateStep('previous');
+    return unsubscribe;
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">

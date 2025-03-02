@@ -13,8 +13,8 @@ interface WizardActions {
   setVisibleSteps: (steps: WizardStep[]) => void;
   setLetterId: (id: string) => void;
   resetWizard: () => void;
-  goToNextStep: () => void;
-  goToPreviousStep: () => void;
+  goToNextStep: () => boolean;
+  goToPreviousStep: () => boolean;
 }
 
 export const useWizardStore = create<WizardState & WizardActions>((set, get) => ({
@@ -37,7 +37,9 @@ export const useWizardStore = create<WizardState & WizardActions>((set, get) => 
     const currentIndex = visibleSteps.indexOf(currentStep);
     if (currentIndex < visibleSteps.length - 1) {
       set({ currentStep: visibleSteps[currentIndex + 1] });
+      return true;
     }
+    return false;
   },
   
   goToPreviousStep: () => {
@@ -45,6 +47,8 @@ export const useWizardStore = create<WizardState & WizardActions>((set, get) => 
     const currentIndex = visibleSteps.indexOf(currentStep);
     if (currentIndex > 0) {
       set({ currentStep: visibleSteps[currentIndex - 1] });
+      return true;
     }
+    return false;
   }
 }));

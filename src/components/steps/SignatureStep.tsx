@@ -10,13 +10,14 @@ import { Button } from "~/components/ui/Button";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
+import { useErrorHandler } from "~/hooks/useErrorHandler";
 
 export default function SignatureStep() {
   const { letterId } = useWizardStore();
   const [signature, setSignature] = useState<string | null>(null);
   const [, setUploadedSignatureUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, handleError, clearError } = useErrorHandler();
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -37,36 +38,28 @@ export default function SignatureStep() {
     }
   }, [letterQuery.data]);
 
-  // Add a standardized error handler (matching UploadStep)
-  const handleError = (error: unknown, customMessage: string) => {
-    console.error(`${customMessage}:`, error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    setError(`${customMessage}: ${errorMessage}`);
-    setIsUploading(false);
-  };
-
   const clearSignature = () => {
     if (sigCanvas.current) {
       sigCanvas.current.clear();
       setSignature(null);
-      setError(null);
+      clearError();
     }
   };
 
   const saveSignature = async () => {
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
-      setError("Please add your signature before saving");
+      handleError(new Error("Please add your signature before saving"), "Validation Error");
       return;
     }
     
     if (!letterId) {
-      setError("Letter ID is missing");
+      handleError(new Error("Letter ID is missing"), "Data Error");
       return;
     }
     
     try {
       setIsUploading(true);
-      setError(null);
+      clearError();
       
       const signatureDataUrl = sigCanvas.current.toDataURL('image/png');
       
@@ -137,7 +130,7 @@ export default function SignatureStep() {
             variant="secondary"
             onClick={() => {
               setSignature(null);
-              setError(null);
+              clearError();
             }}
           >
             Draw New Signature

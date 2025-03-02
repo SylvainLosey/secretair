@@ -11,34 +11,26 @@ import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
+import { useErrorHandler } from "~/hooks/useErrorHandler";
 
 export default function UploadStep() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string>("Cancel this credit card"); // Default prompt
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const { setLetterId, setCurrentStep, setVisibleSteps, } = useWizardStore();
+  const { setLetterId, setCurrentStep, setVisibleSteps } = useWizardStore();
+  const { error, handleError, clearError } = useErrorHandler();
   
   const createLetterMutation = api.letter.create.useMutation();
   const analyzeImageMutation = api.letter.analyzeImage.useMutation();
-
-  // Add a standardized error handler
-  const handleError = (error: unknown, customMessage: string) => {
-    console.error(`${customMessage}:`, error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    setError(`${customMessage}: ${errorMessage}`);
-    setIsUploading(false);
-    setIsAnalyzing(false);
-  };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
     
     try {
       setIsUploading(true);
-      setError(null);
+      clearError();
       
       const file = acceptedFiles[0];
       
@@ -92,22 +84,23 @@ export default function UploadStep() {
     } catch (error) {
       handleError(error, "Error uploading image");
     }
-  }, [createLetterMutation, setLetterId, prompt]);
+  }, [createLetterMutation, setLetterId, prompt, clearError, handleError]);
 
   const handleNextStep = async () => {
     const letterId = useWizardStore.getState().letterId;
     if (!letterId) {
-      setError("Please upload an image first");
+      handleError(new Error("Please upload an image first"), "Validation Error");
       return;
     }
     
     if (!uploadedImageUrl) {
-      setError("Image URL not found");
+      handleError(new Error("Image URL not found"), "Validation Error");
       return;
     }
     
     try {
       setIsAnalyzing(true);
+      clearError();
       
       // Use the stored uploadedImageUrl from state
       const updatedLetter = await analyzeImageMutation.mutateAsync({

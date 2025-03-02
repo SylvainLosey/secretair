@@ -14,6 +14,7 @@ import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import Image from "next/image";
 import { generatePDF } from "~/utils/pdf-generator";
 import { uploadPdf } from "~/utils/supabase-storage";
+import { useErrorHandler } from "~/hooks/useErrorHandler";
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
@@ -30,7 +31,7 @@ export default function ReviewStep() {
   const [isLoading, setIsLoading] = useState(true);
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, handleError, clearError } = useErrorHandler();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const letterQuery = api.letter.getLetter.useQuery(
@@ -50,77 +51,67 @@ export default function ReviewStep() {
   const downloadPdf = async () => {
     try {
       setIsDownloading(true);
-      setError(null);
+      clearError();
       
-      // First, fetch the letter data from the API
-      const response = await fetch('/api/download-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: letterId }),
-      });
+      // Get the letter data
+      const letter = await letterQuery.refetch();
       
-      if (!response.ok) {
-        const errorData = await response.json() as DownloadPdfResponse;
-        throw new Error(errorData.message ?? 'Failed to download PDF');
-      }
-      
-      const data = await response.json() as DownloadPdfResponse;
-      
-      if (!data.success || !data.letter) {
+      if (!letter.data) {
         throw new Error('Failed to fetch letter data');
       }
       
       // Generate the PDF on the client side
-      const { pdfBytes, fileName } = await generatePDF(data.letter);
+      const { pdfBytes, fileName } = await generatePDF(letter.data);
       
-      // Save the PDF to storage
+      // Save the PDF to storage 
       const pdfUrl = await uploadPdf(pdfBytes, 'pdfs');
       
+      // Update the letter's pdfUrl in the database
       if (pdfUrl && letterId) {
-        // Update the letter's pdfUrl in the database
         await updateLetterMutation.mutateAsync({
           id: letterId,
           pdfUrl: pdfUrl,
         });
-        
-        // Also update the local state if you need to
-        setLetter((prev: Letter | null) => prev ? { ...prev, pdfUrl } : null);
       }
       
-      // Convert the base64 string to a binary array for download
-      const byteCharacters = atob(pdfBytes);
-      const byteArrays = [];
-      
-      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512);
-        
-        const byteNumbers = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
-        
-        const byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
-      }
-      
-      const blob = new Blob(byteArrays, { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName ?? "letter.pdf";
-      link.click();
-      
-      URL.revokeObjectURL(url);
+      // Download the PDF
+      downloadBinaryFile(pdfBytes, fileName ?? "letter.pdf");
       
       setSuccessMessage("PDF downloaded and saved to your account!");
-      setIsDownloading(false);
     } catch (error) {
-      console.error('Error downloading PDF:', error);
-      setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      handleError(error, "PDF Generation Error");
+    } finally {
       setIsDownloading(false);
     }
   };
+
+  // Helper function to download binary data
+  function downloadBinaryFile(base64Data: string, fileName: string) {
+    const byteCharacters = atob(base64Data);
+    const byteArrays = [];
+    
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    
+    const blob = new Blob(byteArrays, { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+  }
 
   const handleSwapAddresses = async () => {
     if (!letter || !letterId) return;

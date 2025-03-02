@@ -5,6 +5,7 @@ import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { useAutoSave } from "~/hooks/useAutoSave";
 import { StepLayout } from "~/components/ui/StepLayout";
+import { ErrorMessage } from "~/components/ui/ErrorMessage";
 
 export default function ContentStep() {
   const { letterId } = useWizardStore();
@@ -38,7 +39,7 @@ export default function ContentStep() {
     });
   };
 
-  useAutoSave(
+  const { saveStatus, errorMessage } = useAutoSave(
     content,
     saveContent,
     [content, letterId],
@@ -60,8 +61,11 @@ export default function ContentStep() {
         placeholder="Enter your letter content here..."
       />
       
-      <div className="mt-2 text-right text-sm text-gray-500">
-        {updateLetterMutation.isPending ? "Saving..." : "Changes auto-saved"}
+      {errorMessage && <ErrorMessage message={errorMessage} />}
+      
+      <div className="mt-2 text-right text-sm">
+        {saveStatus === 'saved' && <span className="text-green-500">Changes saved</span>}
+        {saveStatus === 'error' && <span className="text-red-500">Save error</span>}
       </div>
     </StepLayout>
   );
