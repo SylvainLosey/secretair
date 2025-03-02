@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useWizardStore } from "~/lib/store";
-import UploadStep from "./steps/UploadStep";
-import ContentStep, { type ContentStepRef } from "./steps/ContentStep";
-import AddressesStep, { type AddressesStepRef } from "./steps/AddressesStep";
-import SignatureStep, { type SignatureStepRef } from "./steps/SignatureStep";
-import ReviewStep from "./steps/ReviewStep";
-import { Button } from "./ui/Button";
-import { LoadingSpinner } from "./ui/LoadingSpinner";
+import UploadStep from "./common/steps/UploadStep";
+import ContentStep, { type ContentStepRef } from "./common/steps/ContentStep";
+import AddressesStep, { type AddressesStepRef } from "./common/steps/AddressesStep";
+import SignatureStep, { type SignatureStepRef } from "./common/steps/SignatureStep";
+import ReviewStep from "./common/steps/ReviewStep";
+import { Button } from "./common/Button";
+import { LoadingSpinner } from "./common/LoadingSpinner";
 import { ALL_STEPS } from "~/lib/store";
 import { useTranslations } from 'next-intl';
 

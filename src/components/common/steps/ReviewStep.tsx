@@ -7,10 +7,10 @@
 import { useEffect, useState } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api, type RouterOutputs } from "~/utils/api";
-import { Button } from "~/components/ui/Button";
-import { ErrorMessage } from "~/components/ui/ErrorMessage";
-import { SuccessMessage } from "~/components/ui/SuccessMessage";
-import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { Button } from "~/components/common/Button";
+import { ErrorMessage } from "~/components/common/ErrorMessage";
+import { SuccessMessage } from "~/components/common/SuccessMessage";
+import { LoadingSpinner } from "~/components/common/LoadingSpinner";
 import Image from "next/image";
 import { generatePDF } from "~/utils/pdf-generator";
 import { uploadPdf } from "~/utils/supabase-storage";

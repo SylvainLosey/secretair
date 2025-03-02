@@ -4,9 +4,9 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
-import { StepLayout } from "~/components/ui/StepLayout";
-import { Input } from "~/components/ui/Input";
-import { ErrorMessage } from "~/components/ui/ErrorMessage";
+import { StepLayout } from "~/components/common/StepLayout";
+import { Input } from "~/components/common/Input";
+import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useTranslations } from 'next-intl';
 
 // Define the interface for the exposed methods

@@ -1,4 +1,4 @@
-import { PageLayout } from "~/components/ui/PageLayout";
+import { PageLayout } from "~/components/common/PageLayout";
 import { Wizard } from "~/components/Wizard";
 import { HydrateClient } from "~/trpc/server";
 

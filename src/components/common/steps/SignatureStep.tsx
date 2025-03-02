@@ -5,11 +5,11 @@ import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from "re
 import SignatureCanvas from "react-signature-canvas";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
-import { StepLayout } from "~/components/ui/StepLayout";
-import { Button } from "~/components/ui/Button";
+import { StepLayout } from "~/components/common/StepLayout";
+import { Button } from "~/components/common/Button";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
-import { ErrorMessage } from "~/components/ui/ErrorMessage";
+import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
 
