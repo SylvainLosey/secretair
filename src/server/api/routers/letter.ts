@@ -79,31 +79,18 @@ export const letterRouter = createTRPCRouter({
                     type: "text", 
                     text: `Analyze this letter image and provide the following information in JSON format:
                     {
+                      "generatedResponse": "Body text for a formal response letter based on the following goal: ${input.userPrompt}",
                       "senderName": "Name of the person/entity who RECEIVED the original letter (the one in the image)",
-                      "senderAddress": "Full address of the person/entity who RECEIVED the original letter",
+                      "senderAddress": "Postal address of the person/entity who RECEIVED the original letter",
                       "receiverName": "Name of the person/entity who SENT the original letter",
-                      "receiverAddress": "Full address of the person/entity who SENT the original letter",
-                      "letterContext": "Brief summary of what this letter is about, including any reference numbers, account numbers, or specific identifiers",
-                      "generatedResponse": "Body text for a response letter based on the following goal: ${input.userPrompt}"
+                      "receiverAddress": "Postal address of the person/entity who SENT the original letter",
                     }
                     
-                    IMPORTANT NOTES:
-                    1. The RECEIVER is the organization/person who authored the original letter in the image.
-                    2. The SENDER is the person who received the letter and is now creating a response.
-                    3. In the response letter, we will automatically switch these roles (receiver becomes sender).
-                    
                     For the "generatedResponse" field:
-                    - ONLY include the BODY text of the letter
-                    - DO NOT include date, addresses, salutation, or closing
-                    - INCLUDE all relevant specific details such as:
-                      * Account numbers
-                      * Reference numbers
-                      * Policy numbers
-                      * Membership IDs
-                      * Dates mentioned in the original letter
-                      * Any other specific identifiers from the original letter
-                    
-                    ${input.userPrompt} and include these specific details to ensure the letter can be acted upon correctly.` 
+                    - Use the image to retrieveve context (account numbers, reference numbers, etc)
+                    - DO NOT include date and addresses
+                    - Include line breaks as would a formal letter.
+                    - senderName is the author of the response` 
                   },
                   {
                     type: "image_url",

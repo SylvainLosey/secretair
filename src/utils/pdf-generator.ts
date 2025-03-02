@@ -4,6 +4,11 @@
 import type { Letter } from '@prisma/client';
 // Import pdfMake browser version
 import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+
+// Initialize pdfMake with fonts
+// @ts-expect-error safe to ignore
+pdfMake.addVirtualFileSystem(pdfFonts);
 
 interface PDFResult {
   pdfBytes: string;
@@ -61,39 +66,46 @@ export async function generatePDF(letter: Letter): Promise<PDFResult> {
       { stack: senderBlock, margin: [0, 0, 0, 40] },
     
       // Recipient info
-      { stack: receiverBlock, margin: [280, 0, 0, 40] },
+      { stack: receiverBlock, margin: [280, 0, 0, 60] },
       
       // Subject line if available
       // letter.subject ? { text: `Subject: ${letter.subject}`, bold: true, margin: [0, 0, 0, 20] } : {},
       
-      // Salutation
-      { text: `Dear ${letter.receiverName || 'Sir/Madam'},`, margin: [0, 0, 0, 15] },
-      
       // Main content
       ...contentParagraphs,
-      
-      // Closing
-      { text: 'Yours sincerely,', margin: [0, 20, 0, 40] },
     ];
     
     // Handle signature asynchronously
     if (letter.signatureUrl) {
       const base64Image = await fetchSignatureAsBase64(letter.signatureUrl);
       
+      // Get dimensions and calculate proportional size
+      const img = new Image();
+      await new Promise(resolve => {
+        img.onload = resolve;
+        img.src = base64Image;
+      });
+      
+      // Maintain aspect ratio with max width of 150px
+      const maxWidth = 150;
+      const scalingFactor = 0.2;
+      let width = img.width * scalingFactor;
+      let height = img.height * scalingFactor;
+      
+      if (width > maxWidth) {
+        const ratio = maxWidth / width;
+        width = maxWidth; 
+        height = height * ratio;
+      }
+      
       // Add signature and name
       content.push({
         image: base64Image,
-        width: 150,
-        height: 60,
+        width,
+        height,
         margin: [0, 0, 0, 5]
       } as any);
     }
-    
-    // Add sender name below signature
-    content.push({ 
-      text: letter.senderName || '',
-      margin: [0, 5, 0, 0]
-    });
     
     // Create document definition
     const docDefinition = {

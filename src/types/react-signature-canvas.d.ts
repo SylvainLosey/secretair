@@ -16,5 +16,7 @@ declare module 'react-signature-canvas' {
     clear: () => void;
     isEmpty: () => boolean;
     toDataURL: (type?: string, encoderOptions?: number) => string;
+    getTrimmedCanvas: () => HTMLCanvasElement;
+    getCanvas: () => HTMLCanvasElement;
   }
 } 

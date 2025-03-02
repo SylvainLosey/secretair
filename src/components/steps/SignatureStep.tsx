@@ -61,7 +61,22 @@ export default function SignatureStep() {
       setIsUploading(true);
       clearError();
       
-      const signatureDataUrl = sigCanvas.current.toDataURL('image/png');
+      // Log canvas properties before trimming
+      console.log("Original canvas dimensions:", {
+        width: sigCanvas.current.getCanvas().width,
+        height: sigCanvas.current.getCanvas().height
+      });
+      
+      // Get the trimmed canvas
+      const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
+      
+      // Log canvas properties after trimming
+      console.log("Trimmed canvas dimensions:", {
+        width: trimmedCanvas.width, 
+        height: trimmedCanvas.height
+      });
+      
+      const signatureDataUrl = trimmedCanvas.toDataURL('image/png');
       
       // Upload to Supabase
       const signatureUrl = await uploadImage(signatureDataUrl, 'signatures');
@@ -144,7 +159,7 @@ export default function SignatureStep() {
               canvasProps={{
                 className: "signature-canvas h-64 w-full",
               }}
-              backgroundColor="white"
+              backgroundColor="rgba(255,255,255,0)"
             />
           </div>
           
