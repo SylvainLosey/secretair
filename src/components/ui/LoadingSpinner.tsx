@@ -20,7 +20,7 @@ export function LoadingSpinner({
   return (
     <div className={`flex items-center ${className}`}>
       <svg 
-        className={`animate-spin ${sizeClasses[size]} text-navy-700`} 
+        className={`animate-spin ${sizeClasses[size]} text-blue-600`} 
         xmlns="http://www.w3.org/2000/svg" 
         fill="none" 
         viewBox="0 0 24 24"

@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import "~/styles/globals.css";
 
 export const metadata = {
-  title: "SimplerPost - Send Letters Without a Printer",
+  title: "PrintMail - Send Letters Without a Printer",
   description: "Send physical letters in a few clicks without a printer",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };

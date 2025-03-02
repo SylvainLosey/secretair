@@ -308,14 +308,14 @@ export default function UploadStep() {
             onClick={() => handleSelectTemplate(template)}
             className={`flex cursor-pointer flex-col rounded-lg border-2 p-4 transition-all hover:shadow-md ${
               selectedTemplate?.id === template.id
-                ? "border-blue-500 bg-blue-50"
+                ? "border-printmail-primary bg-printmail-primary bg-opacity-5"
                 : "border-gray-200 bg-white"
             }`}
           >
             <div className="flex items-start">
               <div className={`mr-3 rounded-full p-2 ${
                 selectedTemplate?.id === template.id
-                  ? "bg-blue-500 text-white"
+                  ? "bg-printmail-primary text-white"
                   : "bg-gray-100 text-gray-700"
               }`}>
                 {template.icon}
