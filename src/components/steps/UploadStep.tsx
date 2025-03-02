@@ -308,17 +308,35 @@ export default function UploadStep() {
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
         <div 
           className={`p-4 border rounded-lg cursor-pointer ${selectedTemplate?.id === 'cancel' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
-          onClick={() => handleSelectTemplate(presetTemplates[0])}
+          onClick={() => handleSelectTemplate(presetTemplates[0]!)}
         >
-          <h3 className="font-medium text-lg">{t('templates.cancel.title')}</h3>
+          <div className="flex items-center mb-2">
+            <div className={`mr-3 p-2 rounded-full ${
+              selectedTemplate?.id === 'cancel' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-blue-100 text-blue-600'
+            }`}>
+              {presetTemplates[0]?.icon}
+            </div>
+            <h3 className="font-medium text-lg">{t('templates.cancel.title')}</h3>
+          </div>
           <p className="text-gray-600 mt-1">{t('templates.cancel.description')}</p>
         </div>
         
         <div 
           className={`p-4 border rounded-lg cursor-pointer ${selectedTemplate?.id === 'scratch' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
-          onClick={() => handleSelectTemplate(presetTemplates[1])}
+          onClick={() => handleSelectTemplate(presetTemplates[1]!)}
         >
-          <h3 className="font-medium text-lg">{t('templates.scratch.title')}</h3>
+          <div className="flex items-center mb-2">
+            <div className={`mr-3 p-2 rounded-full ${
+              selectedTemplate?.id === 'scratch' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-blue-100 text-blue-600'
+            }`}>
+              {presetTemplates[1]?.icon}
+            </div>
+            <h3 className="font-medium text-lg">{t('templates.scratch.title')}</h3>
+          </div>
           <p className="text-gray-600 mt-1">{t('templates.scratch.description')}</p>
         </div>
       </div>

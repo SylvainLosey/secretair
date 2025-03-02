@@ -33,6 +33,7 @@ export default async function RootLayout({
   try {
     messages = (await import(`../../i18n/locales/${locale}.json`)).default;
   } catch (error) {
+    console.error('Error loading messages:', error);
     notFound();
   }
 
