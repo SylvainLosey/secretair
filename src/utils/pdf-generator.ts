@@ -1,119 +1,111 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 'use client';
 
 import type { Letter } from '@prisma/client';
 // Import pdfMake browser version
 import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-
-// Initialize pdfMake with fonts
-// @ts-expect-error safe to ignore
-pdfMake.addVirtualFileSystem(pdfFonts);
 
 interface PDFResult {
   pdfBytes: string;
   fileName: string;
 }
 
-interface PDFContentItem {
-  text?: string;
-  margin?: number[];
-  image?: string;
-  width?: number;
-  height?: number;
+// Helper function to format addresses
+function formatAddress(address: string): string[] {
+  if (!address) return [];
+  
+  // First split by newline
+  const parts: string[] = [];
+  
+  address.split('\n').forEach(part => {
+    // Then split each line by commas followed by space
+    if (part.includes(', ')) {
+      parts.push(...part.split(', '));
+    } else {
+      parts.push(part);
+    }
+  });
+  
+  // Filter out empty lines and trim each line
+  return parts.map(part => part.trim()).filter(part => part.length > 0);
 }
 
 export async function generatePDF(letter: Letter): Promise<PDFResult> {
   try {
-    // Format the date and prepare all the content that doesn't require async operations
-    const dateString = new Date().toLocaleDateString('en-US', {
+    // Format the date in European style (day month year)
+    const dateString = new Date().toLocaleDateString('en-GB', {
       year: 'numeric', month: 'long', day: 'numeric',
     });
 
-    const content: PDFContentItem[] = [{ text: dateString, margin: [0, 0, 0, 10] }];
+    // Prepare content sections with improved address formatting
+    const senderBlock = [
+      { text: letter.senderName || '', bold: true },
+      ...formatAddress(letter.senderAddress || '').map(line => ({ text: line }))
+    ];
     
-    // Add all the text content (sender, receiver, letter content, etc.)
-    if (letter.senderName) content.push({
-      text: letter.senderName,
-      margin: []
-    });
-    if (letter.senderAddress) {
-      const addressLines = letter.senderAddress.split('\n');
-      addressLines.forEach((line: string) => {
-        content.push({
-          text: line,
-          margin: []
-        });
-      });
-    }
-    content.push({ text: '', margin: [0, 15, 0, 0] });
-    if (letter.receiverName) content.push({
-      text: letter.receiverName,
-      margin: []
-    });
-    if (letter.receiverAddress) {
-      const addressLines = letter.receiverAddress.split('\n');
-      addressLines.forEach((line: string) => {
-        content.push({
-          text: line,
-          margin: []
-        });
-      });
-    }
-    content.push({ text: '', margin: [0, 15, 0, 0] });
-    content.push({ 
-      text: `Dear ${letter.receiverName || 'Sir/Madam'},`, 
-      margin: [0, 0, 0, 10] 
-    });
-    if (letter.content) {
-      const contentLines = letter.content.split('\n');
-      contentLines.forEach((line: string) => {
-        content.push({ text: line, margin: [0, 0, 0, 5] });
-      });
-    }
-    content.push({ 
-      text: 'Sincerely,', 
-      margin: [0, 15, 0, 10] 
-    });
+    const receiverBlock = [
+      { text: letter.receiverName || '', bold: true },
+      ...formatAddress(letter.receiverAddress || '').map(line => ({ text: line }))
+    ];
     
-    // Handle signature asynchronously before PDF generation
+    const contentParagraphs = letter.content 
+      ? letter.content.split('\n\n').map(para => ({ text: para, margin: [0, 0, 0, 10] }))
+      : [];
+    
+    // Prepare document structure
+    const content = [
+      // Date (right aligned)
+      { text: dateString, margin: [280, 0, 0, 20] },
+
+      // Sender info (top left)
+      { stack: senderBlock, margin: [0, 0, 0, 40] },
+    
+      // Recipient info
+      { stack: receiverBlock, margin: [280, 0, 0, 40] },
+      
+      // Subject line if available
+      // letter.subject ? { text: `Subject: ${letter.subject}`, bold: true, margin: [0, 0, 0, 20] } : {},
+      
+      // Salutation
+      { text: `Dear ${letter.receiverName || 'Sir/Madam'},`, margin: [0, 0, 0, 15] },
+      
+      // Main content
+      ...contentParagraphs,
+      
+      // Closing
+      { text: 'Yours sincerely,', margin: [0, 20, 0, 40] },
+    ];
+    
+    // Handle signature asynchronously
     if (letter.signatureUrl) {
-      const response = await fetch(letter.signatureUrl);
-      const blob = await response.blob();
-      const reader = new FileReader();
+      const base64Image = await fetchSignatureAsBase64(letter.signatureUrl);
       
-      // Convert blob to base64
-      const base64Image = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-      
-      // Add to content
+      // Add signature and name
       content.push({
         image: base64Image,
         width: 150,
-        height: 60
-      });
+        height: 60,
+        margin: [0, 0, 0, 5]
+      } as any);
     }
     
     // Add sender name below signature
-    if (letter.senderName) {
-      content.push({ 
-        text: letter.senderName,
-        margin: [0, 10, 0, 0]
-      });
-    }
+    content.push({ 
+      text: letter.senderName || '',
+      margin: [0, 5, 0, 0]
+    });
     
     // Create document definition
     const docDefinition = {
       content: content,
       defaultStyle: {
-        fontSize: 12,
-        lineHeight: 1.5
+        fontSize: 11,
+        // Using the default Roboto font that comes with pdfMake
+        // No need to specify 'font' property
+        lineHeight: 1.3
       },
       pageSize: 'A4',
-      pageMargins: [50, 50, 50, 50]
+      pageMargins: [70, 50, 70, 50] // European standard margins
     };
     
     // Generate PDF
@@ -133,4 +125,17 @@ export async function generatePDF(letter: Letter): Promise<PDFResult> {
     console.error('PDF generation error:', error);
     throw new Error(error instanceof Error ? error.message : "Unknown PDF generation error");
   }
+}
+
+// Helper function to fetch and convert signature
+async function fetchSignatureAsBase64(url: string): Promise<string> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
