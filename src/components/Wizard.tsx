@@ -61,7 +61,7 @@ export function Wizard() {
           {/* Progress bar under the steps */}
           <div className="absolute top-5 left-0 h-1 w-full bg-gray-200">
             <div 
-              className="h-full bg-blue-600 transition-all duration-300" 
+              className="h-full bg-navy-600 transition-all duration-300" 
               style={{ 
                 width: `${(visibleSteps.indexOf(currentStep) / (visibleSteps.length - 1)) * 100}%` 
               }}
@@ -75,7 +75,7 @@ export function Wizard() {
                 <div 
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
                     index <= visibleSteps.indexOf(currentStep)
-                      ? "bg-blue-600 text-white shadow-md"
+                      ? "bg-navy-700 text-mint-100 shadow-sm"
                       : "bg-white text-gray-500 border border-gray-300"
                   }`}
                 >
@@ -83,7 +83,7 @@ export function Wizard() {
                 </div>
                 <span 
                   className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
-                    index <= visibleSteps.indexOf(currentStep) ? "text-blue-600" : "text-gray-500"
+                    index <= visibleSteps.indexOf(currentStep) ? "text-navy-800" : "text-gray-500"
                   }`}
                 >
                   {step.charAt(0).toUpperCase() + step.slice(1)}
@@ -95,7 +95,7 @@ export function Wizard() {
       </div>
 
       {/* Step content - improved card with better shadow and spacing */}
-      <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white p-8 shadow-lg">
+      <div className="mb-8 overflow-hidden rounded-xl border border-gray-200 bg-white p-6 md:p-8 shadow-md">
         {renderStep()}
       </div>
 
