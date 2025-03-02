@@ -1,17 +1,16 @@
 // src/hooks/useErrorHandler.ts
-import { useState } from 'react';
+import { useErrorContext } from '~/contexts/ErrorContext';
 
 export function useErrorHandler() {
-  const [error, setError] = useState<string | null>(null);
+  const { captureError, captureMessage } = useErrorContext();
   
-  const handleError = (error: unknown, customMessage: string) => {
-    console.error(`${customMessage}:`, error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    setError(`${customMessage}: ${errorMessage}`);
+  const handleError = (error: unknown, customMessage: string, report = false) => {
+    captureError(error, customMessage, report);
     return false;
   };
   
-  const clearError = () => setError(null);
-  
-  return { error, handleError, clearError };
+  return { 
+    handleError,
+    captureMessage
+  };
 }

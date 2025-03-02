@@ -9,7 +9,6 @@ import { StepLayout } from "~/components/common/StepLayout";
 import { Button } from "~/components/ui/button";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
-import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
 
@@ -23,7 +22,7 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
   const [signature, setSignature] = useState<string | null>(null);
   const [uploadedSignatureUrl, setUploadedSignatureUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { error, handleError, clearError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [isLoading, setIsLoading] = useState(true);
   const t = useTranslations('signatureStep');
@@ -49,7 +48,6 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
     if (sigCanvas.current) {
       sigCanvas.current.clear();
       setSignature(null);
-      clearError();
     }
   };
   
@@ -58,7 +56,6 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
     
     try {
       setIsUploading(true);
-      clearError();
       
       // If we already have a signature and it's already uploaded, no need to re-upload
       if (signature && signature === uploadedSignatureUrl) {
@@ -141,9 +138,7 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
       description={t('description')}
       isLoading={isLoading}
       loadingMessage={t('loading')}
-    >
-      <ErrorMessage message={error} />
-      
+    >      
       {signature ? (
         <div className="mb-4">
           <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4">
@@ -159,7 +154,6 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
             variant="secondary"
             onClick={() => {
               setSignature(null);
-              clearError();
             }}
           >
             {t('drawNewButton')}

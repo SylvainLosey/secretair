@@ -7,9 +7,9 @@ import { api } from "~/utils/api";
 import { StepLayout } from "~/components/common/StepLayout";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useTranslations } from 'next-intl';
 import { Textarea } from "~/components/ui/textarea";
+import { useErrorHandler } from "~/hooks/useErrorHandler";
 
 // Define the interface for the exposed methods
 export interface AddressesStepRef {
@@ -24,7 +24,8 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
   const [receiverAddress, setReceiverAddress] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
+
   const t = useTranslations('addressesStep');
 
   const letterQuery = api.letter.getLetter.useQuery(
@@ -49,7 +50,6 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
     
     try {
       setIsSaving(true);
-      setErrorMessage(null);
       
       await updateLetterMutation.mutateAsync({
         id: letterId,
@@ -61,7 +61,7 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
       
       return true; // Save successful
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save addresses");
+      handleError(error, "Failed to save addresses");
       return false; // Save failed
     } finally {
       setIsSaving(false);
@@ -130,10 +130,7 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
             placeholder="Enter recipient's address"
           />
         </div>
-      </div>
-      
-      {errorMessage && <ErrorMessage message={errorMessage} />}
-      
+      </div>      
       <div className="mt-2 text-right text-sm">
         {isSaving && <span className="text-blue-500">{t('saving')}</span>}
       </div>

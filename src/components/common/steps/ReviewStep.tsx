@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api, type RouterOutputs } from "~/utils/api";
 import { Button } from "~/components/ui/button";
-import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { SuccessMessage } from "~/components/common/SuccessMessage";
 import { LoadingSpinner } from "~/components/common/LoadingSpinner";
 import Image from "next/image";
@@ -25,7 +24,7 @@ export default function ReviewStep() {
   const [isLoading, setIsLoading] = useState(true);
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const { error, handleError, clearError } = useErrorHandler();
+  const { handleError } = useErrorHandler();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const t = useTranslations('reviewStep');
   
@@ -45,9 +44,7 @@ export default function ReviewStep() {
 
   const downloadPdf = async () => {
     try {
-      setIsDownloading(true);
-      clearError();
-      
+      setIsDownloading(true);      
       // Get the letter data
       const letter = await letterQuery.refetch();
       
@@ -160,7 +157,6 @@ export default function ReviewStep() {
         {t('title')}
       </h2>
       
-      <ErrorMessage message={error} />
       <SuccessMessage message={successMessage} />
       
       <div className="mb-8">

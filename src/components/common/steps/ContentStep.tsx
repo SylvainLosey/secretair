@@ -4,9 +4,9 @@ import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { StepLayout } from "~/components/common/StepLayout";
-import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useTranslations } from 'next-intl';
 import { Textarea } from "~/components/ui/textarea";
+import { useErrorHandler } from "~/hooks/useErrorHandler";
 
 // Define the interface for the exposed methods
 export interface ContentStepRef {
@@ -18,7 +18,8 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
+
   const t = useTranslations('contentStep');
 
   const letterQuery = api.letter.getLetter.useQuery(
@@ -44,7 +45,6 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
     
     try {
       setIsSaving(true);
-      setErrorMessage(null);
       
       await updateLetterMutation.mutateAsync({
         id: letterId,
@@ -53,7 +53,7 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
       
       return true; // Save successful
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save content");
+      handleError(error, "Failed to save content");
       return false; // Save failed
     } finally {
       setIsSaving(false);
@@ -78,10 +78,7 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
         className="min-h-[300px]"
         rows={12}
         placeholder={t('placeholder')}
-      />
-      
-      {errorMessage && <ErrorMessage message={errorMessage} />}
-      
+      />      
       <div className="mt-2 text-right text-sm">
         {isSaving && <span className="text-blue-500">{t('saving')}</span>}
       </div>

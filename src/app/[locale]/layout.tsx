@@ -5,6 +5,8 @@ import { GeistSans } from "geist/font/sans";
 import "~/styles/globals.css";
 import { notFound } from 'next/navigation';
 import { locales, isSupportedLocale } from "~/i18n/locales";
+import { Toaster } from '~/components/ui/sonner';
+import { AppProviders } from "~/app/providers";
 
 export const metadata = {
   title: "PrintMail - Send Letters Without a Printer",
@@ -41,7 +43,12 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={GeistSans.className}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <TRPCProvider>{children}</TRPCProvider>
+          <AppProviders>
+            <TRPCProvider>
+              {children}
+              <Toaster />
+            </TRPCProvider>
+          </AppProviders>
         </NextIntlClientProvider>
       </body>
     </html>

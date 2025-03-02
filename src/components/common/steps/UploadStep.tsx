@@ -6,7 +6,6 @@ import { useDropzone } from "react-dropzone";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { Button } from "~/components/ui/button";
-import { ErrorMessage } from "~/components/common/ErrorMessage";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
 import { useErrorHandler } from "~/hooks/useErrorHandler";
@@ -35,7 +34,7 @@ export default function UploadStep() {
   const [hasChangedSinceLastAnalysis, setHasChangedSinceLastAnalysis] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<PresetTemplate | null>(null);
   const { letterId, setLetterId, goToNextStep} = useWizardStore();
-  const { error, handleError, clearError } = useErrorHandler();
+  const { handleError, captureMessage } = useErrorHandler();
   
   const createLetterMutation = api.letter.create.useMutation();
   const generateLetterMutation = api.letter.generateLetter.useMutation();
@@ -78,7 +77,6 @@ export default function UploadStep() {
     
     try {
       setIsUploading(true);
-      clearError();
       
       const file = acceptedFiles[0];
       
@@ -133,7 +131,7 @@ export default function UploadStep() {
         };
         
         reader.onerror = () => {
-          handleError(new Error("Error reading file"), "File reading error");
+          captureMessage("Error reading file")
           URL.revokeObjectURL(objectUrl);
         };
         
@@ -144,7 +142,7 @@ export default function UploadStep() {
     } catch (error) {
       handleError(error, "Error uploading image");
     }
-  }, [createLetterMutation, updateLetterMutation, letterId, setLetterId, prompt, clearError, handleError]);
+  }, [createLetterMutation, updateLetterMutation, letterId, setLetterId, prompt, handleError, captureMessage]);
 
   const handleSelectTemplate = (template: PresetTemplate) => {
     setSelectedTemplate(template);
@@ -164,9 +162,7 @@ export default function UploadStep() {
   };
 
   const handleNextStep = async () => {
-    try {
-      clearError();
-      
+    try {      
       // For templates without an image requirement
       if (selectedTemplate && !selectedTemplate.requiresImage) {
         let currentLetterId = letterId;
@@ -220,13 +216,13 @@ export default function UploadStep() {
       const imageUrl = uploadedImageUrl;
       
       if (!currentLetterId && !preview) {
-        handleError(new Error("Please upload an image first"), "Validation Error");
+        captureMessage("Please upload an image first");
         return;
       }
       
       if (!imageUrl && !preview) {
         // No image available, prompt user to upload one
-        handleError(new Error("Please upload an image first"), "Validation Error");
+        captureMessage("Please upload an image first");
         return;
       }
       
@@ -426,9 +422,7 @@ export default function UploadStep() {
               </div>
             </>
           )}
-          
-          <ErrorMessage message={error} />
-          
+                    
           {/* Next button that triggers analysis */}
           <Button 
             variant="default" 
