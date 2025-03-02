@@ -7,7 +7,6 @@ import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { Button } from "~/components/ui/Button";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
-import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
 import { useErrorHandler } from "~/hooks/useErrorHandler";
@@ -302,7 +301,7 @@ export default function UploadStep() {
       </p>
       
       {/* Template selection grid */}
-      <div className="mb-8 grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
         {presetTemplates.map((template) => (
           <div
             key={template.id}
@@ -332,7 +331,7 @@ export default function UploadStep() {
       
       {selectedTemplate && (
         <>
-          <div className="mb-6 w-full">
+          <div className="my-6 w-full">
             <label className="mb-2 block text-sm font-medium text-gray-700">
               What would you like to accomplish?
             </label>
@@ -413,12 +412,6 @@ export default function UploadStep() {
             </>
           )}
           
-          {isUploading && (
-            <div className="mb-4">
-              <LoadingSpinner size="md" message="Uploading your document..." />
-            </div>
-          )}
-          
           <ErrorMessage message={error} />
           
           {/* Next button that triggers analysis */}
@@ -428,12 +421,17 @@ export default function UploadStep() {
             disabled={
               (selectedTemplate.requiresImage && !preview) || 
               isAnalyzing ||
+              isUploading ||
               !prompt.trim()
             }
-            isLoading={isAnalyzing}
+            isLoading={isAnalyzing || isUploading}
             fullWidth
           >
-            {isAnalyzing ? "Analyzing..." : "Continue"}
+            {isAnalyzing 
+              ? "Analyzing..." 
+              : isUploading 
+                ? "Uploading..." 
+                : "Continue"}
           </Button>
         </>
       )}

@@ -49,32 +49,32 @@ export function Wizard() {
 
   const renderStepIndicator = () => {
     const steps = [
-      { id: "upload", label: "Upload" },
-      { id: "content", label: "Content" },
-      { id: "addresses", label: "Addresses" },
-      { id: "signature", label: "Signature" },
-      { id: "review", label: "Review" },
+      { id: ALL_STEPS[0], label: "Upload" },
+      { id: ALL_STEPS[1], label: "Content" },
+      { id: ALL_STEPS[2], label: "Addresses" },
+      { id: ALL_STEPS[3], label: "Signature" },
+      { id: ALL_STEPS[4], label: "Review" },
     ];
 
     return (
-      <div className="mb-8">
+      <div className="mb-12 px-4">
         <div className="flex justify-between">
           {steps.map((step, index) => {
             const isActive = currentStep === step.id;
-            const isPast = ALL_STEPS.indexOf(step.id) < ALL_STEPS.indexOf(currentStep);
+            const isPast = ALL_STEPS.indexOf(step.id!) < ALL_STEPS.indexOf(currentStep);
             
             return (
               <div key={step.id} className="flex flex-col items-center">
                 <div 
                   className={`
-                    flex h-8 w-8 items-center justify-center rounded-full 
+                    flex h-10 w-10 items-center justify-center rounded-full 
                     ${isActive ? "bg-blue-600 text-white" : 
                       isPast ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}
                   `}
                 >
                   {index + 1}
                 </div>
-                <span className={`mt-2 text-xs ${isActive ? "font-medium text-blue-600" : 
+                <span className={`mt-3 text-sm ${isActive ? "font-medium text-blue-600" : 
                   isPast ? "text-blue-600" : "text-gray-400"}`}>
                   {step.label}
                 </span>
@@ -134,35 +134,35 @@ export function Wizard() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
       {renderStepIndicator()}
       
-      <div className="mb-6">
-        {renderStep()}
-      </div>
-      
-      {currentStep !== "upload" && (
-        <div className="mt-6 flex justify-between">
-          <Button
-            variant="outline"
-            onClick={goToPreviousStep}
-            disabled={isNavigating}
-          >
-            Back
-          </Button>
-          
-          {currentStep !== "review" && (
+      <div className="px-2">
+          {renderStep()}
+        
+        {currentStep !== "upload" && (
+          <div className="mt-6 flex justify-between">
             <Button
-              variant="primary"
-              onClick={handleNextStep}
+              variant="outline"
+              onClick={goToPreviousStep}
               disabled={isNavigating}
-              isLoading={isNavigating}
             >
-              {isNavigating ? "Saving..." : "Next"}
+              Back
             </Button>
-          )}
-        </div>
-      )}
+            
+            {currentStep !== "review" && (
+              <Button
+                variant="primary"
+                onClick={handleNextStep}
+                disabled={isNavigating}
+                isLoading={isNavigating}
+              >
+                {isNavigating ? "Saving..." : "Next"}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

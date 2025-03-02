@@ -16,7 +16,7 @@ export function Input({
   ...props
 }: InputProps) {
   return (
-    <div className={`mb-4 ${fullWidth ? 'w-full' : ''}`}>
+    <div className={`mb-5 ${fullWidth ? 'w-full' : ''}`}>
       {label && (
         <label 
           htmlFor={props.id} 

@@ -36,11 +36,11 @@ export function StepLayout({
   }
 
   return (
-    <div>
-      <h2 className="mb-4 text-xl font-semibold">{title}</h2>
+    <div className="px-2">
+      <h2 className="mb-5 text-xl font-semibold">{title}</h2>
       {description && <p className="mb-6 text-gray-600">{description}</p>}
-      <div className="mb-6">{children}</div>
-      {actions && <div className="mt-4">{actions}</div>}
+      <div className="mb-8">{children}</div>
+      {actions && <div className="mt-6">{actions}</div>}
     </div>
   );
 } 
