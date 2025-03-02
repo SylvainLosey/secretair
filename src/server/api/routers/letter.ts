@@ -20,7 +20,7 @@ export const letterRouter = createTRPCRouter({
   create: publicProcedure
     .input(
       z.object({
-        originalImage: z.string().optional(),
+        imageUrl: z.string().optional(),
         userPrompt: z.string().optional(),
       })
     )
@@ -32,7 +32,7 @@ export const letterRouter = createTRPCRouter({
           senderAddress: "",
           receiverName: "",
           receiverAddress: "",
-          originalImage: input.originalImage,
+          imageUrl: input.imageUrl,
         },
       });
       return letter;
@@ -65,7 +65,7 @@ export const letterRouter = createTRPCRouter({
           content: "",
         };
 
-        const hasImage = !!letter.originalImage;
+        const hasImage = !!letter.imageUrl;
         
         if (hasImage) {
           // Image + prompt analysis
@@ -108,7 +108,7 @@ export const letterRouter = createTRPCRouter({
                   {
                     type: "image_url",
                     image_url: {
-                      url: letter.originalImage ?? "",
+                      url: letter.imageUrl ?? "",
                       detail: "high"
                     }
                   }
@@ -221,9 +221,9 @@ export const letterRouter = createTRPCRouter({
         senderAddress: z.string().optional(),
         receiverName: z.string().optional(),
         receiverAddress: z.string().optional(),
-        signature: z.string().optional(),
+        signatureUrl: z.string().optional(),
         pdfUrl: z.string().optional(),
-        originalImage: z.string().optional(),
+        imageUrl: z.string().optional(),
         userPrompt: z.string().optional(),
       })
     )

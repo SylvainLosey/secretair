@@ -80,9 +80,9 @@ export default function UploadStep() {
       }
       
       // Set the image if available
-      if (letterQuery.data.originalImage) {
-        setUploadedImageUrl(letterQuery.data.originalImage);
-        setPreview(letterQuery.data.originalImage);
+      if (letterQuery.data.imageUrl) {
+        setUploadedImageUrl(letterQuery.data.imageUrl);
+        setPreview(letterQuery.data.imageUrl);
       }
       
       // Reset change tracking
@@ -134,13 +134,13 @@ export default function UploadStep() {
               // Update existing letter with new image and prompt
               await updateLetterMutation.mutateAsync({
                 id: letterId,
-                originalImage: imageUrl,
+                imageUrl: imageUrl,
                 userPrompt: prompt
               });
             } else {
               // Create a new letter with the Supabase URL
               const letter = await createLetterMutation.mutateAsync({
-                originalImage: imageUrl,
+                imageUrl: imageUrl,
                 userPrompt: prompt
               });
               

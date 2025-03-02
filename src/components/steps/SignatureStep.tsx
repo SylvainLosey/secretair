@@ -30,9 +30,9 @@ export default function SignatureStep() {
 
   useEffect(() => {
     if (letterQuery.data) {
-      if (letterQuery.data.signature) {
-        setSignature(letterQuery.data.signature);
-        setUploadedSignatureUrl(letterQuery.data.signature);
+      if (letterQuery.data.signatureUrl) {
+        setSignature(letterQuery.data.signatureUrl);
+        setUploadedSignatureUrl(letterQuery.data.signatureUrl);
       }
       setIsLoading(false);
     }
@@ -76,7 +76,7 @@ export default function SignatureStep() {
       // Save the URL in your database
       await updateLetterMutation.mutateAsync({
         id: letterId,
-        signature: signatureUrl,
+        signatureUrl: signatureUrl,
       });
       
       // Update local state with the URL

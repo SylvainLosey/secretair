@@ -215,7 +215,7 @@ export default function ReviewStep() {
           </div>
         </div>
         
-        {letter.signature && (
+        {letter.signatureUrl && (
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-500">Signature</h3>
@@ -228,7 +228,7 @@ export default function ReviewStep() {
             </div>
             <div className="rounded-md border border-gray-200 bg-white p-4">
               <Image 
-                src={letter.signature}
+                src={letter.signatureUrl}
                 alt="Your signature"
                 width={200}
                 height={80}
