@@ -12,7 +12,7 @@ import { LoadingSpinner } from "./ui/LoadingSpinner";
 
 export function Wizard() {
   const { currentStep, visibleSteps, goToNextStep, goToPreviousStep } = useWizardStore();
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigating, ] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const renderStep = () => {

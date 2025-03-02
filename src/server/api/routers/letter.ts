@@ -159,6 +159,8 @@ export const letterRouter = createTRPCRouter({
         receiverAddress: z.string().optional(),
         signature: z.string().optional(),
         pdfUrl: z.string().optional(),
+        originalImage: z.string().optional(),
+        userPrompt: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

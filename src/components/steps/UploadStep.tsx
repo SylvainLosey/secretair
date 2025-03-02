@@ -1,6 +1,7 @@
+// src/components/steps/UploadStep.tsx
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
@@ -19,11 +20,45 @@ export default function UploadStep() {
   const [preview, setPreview] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string>("Cancel this credit card"); // Default prompt
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const { setLetterId, setCurrentStep, setVisibleSteps } = useWizardStore();
+  const [hasChangedSinceLastAnalysis, setHasChangedSinceLastAnalysis] = useState(false);
+  const { letterId, setLetterId, setCurrentStep, setVisibleSteps } = useWizardStore();
   const { error, handleError, clearError } = useErrorHandler();
   
   const createLetterMutation = api.letter.create.useMutation();
   const analyzeImageMutation = api.letter.analyzeImage.useMutation();
+  const updateLetterMutation = api.letter.updateLetter.useMutation();
+  
+  // Fetch existing letter data when component mounts
+  const letterQuery = api.letter.getLetter.useQuery(
+    { id: letterId ?? "" },
+    { enabled: !!letterId }
+  );
+
+  // Initialize state from existing letter when available
+  useEffect(() => {
+    if (letterQuery.data) {
+      // Set the prompt from saved data if available
+      if (letterQuery.data.userPrompt) {
+        setPrompt(letterQuery.data.userPrompt);
+      }
+      
+      // Set the image if available
+      if (letterQuery.data.originalImage) {
+        setUploadedImageUrl(letterQuery.data.originalImage);
+        setPreview(letterQuery.data.originalImage);
+      }
+      
+      // Reset change tracking
+      setHasChangedSinceLastAnalysis(false);
+    }
+  }, [letterQuery.data]);
+
+  // Track changes to prompt
+  useEffect(() => {
+    if (letterQuery.data?.userPrompt && prompt !== letterQuery.data.userPrompt) {
+      setHasChangedSinceLastAnalysis(true);
+    }
+  }, [prompt, letterQuery.data?.userPrompt]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
@@ -38,6 +73,9 @@ export default function UploadStep() {
         // Create preview for display
         const objectUrl = URL.createObjectURL(file);
         setPreview(objectUrl);
+        
+        // Mark as changed since a new image was uploaded
+        setHasChangedSinceLastAnalysis(true);
         
         // Store uploaded URL for later use
         const reader = new FileReader();
@@ -55,13 +93,22 @@ export default function UploadStep() {
             // Save the URL in state for later use
             setUploadedImageUrl(imageUrl);
             
-            // Create a new letter with the Supabase URL
-            const letter = await createLetterMutation.mutateAsync({
-              originalImage: imageUrl,
-              userPrompt: prompt
-            });
-            
-            setLetterId(letter.id);
+            if (letterId) {
+              // Update existing letter with new image and prompt
+              await updateLetterMutation.mutateAsync({
+                id: letterId,
+                originalImage: imageUrl,
+                userPrompt: prompt
+              });
+            } else {
+              // Create a new letter with the Supabase URL
+              const letter = await createLetterMutation.mutateAsync({
+                originalImage: imageUrl,
+                userPrompt: prompt
+              });
+              
+              setLetterId(letter.id);
+            }
             
             // Clean up the object URL
             URL.revokeObjectURL(objectUrl);
@@ -84,38 +131,68 @@ export default function UploadStep() {
     } catch (error) {
       handleError(error, "Error uploading image");
     }
-  }, [createLetterMutation, setLetterId, prompt, clearError, handleError]);
+  }, [createLetterMutation, updateLetterMutation, letterId, setLetterId, prompt, clearError, handleError]);
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPrompt(e.target.value);
+    setHasChangedSinceLastAnalysis(true);
+  };
 
   const handleNextStep = async () => {
-    const letterId = useWizardStore.getState().letterId;
-    if (!letterId) {
+    const currentLetterId = useWizardStore.getState().letterId;
+    if (!currentLetterId) {
       handleError(new Error("Please upload an image first"), "Validation Error");
       return;
     }
     
-    if (!uploadedImageUrl) {
+    // Use the image URL from state or from the query result
+    const imageUrl = uploadedImageUrl ?? letterQuery.data?.originalImage;
+    
+    if (!imageUrl) {
       handleError(new Error("Image URL not found"), "Validation Error");
       return;
     }
     
     try {
-      setIsAnalyzing(true);
-      clearError();
+      // Save the prompt even if we don't re-analyze
+      if (currentLetterId && prompt !== letterQuery.data?.userPrompt) {
+        await updateLetterMutation.mutateAsync({
+          id: currentLetterId,
+          userPrompt: prompt,
+        });
+      }
       
-      // Use the stored uploadedImageUrl from state
-      const updatedLetter = await analyzeImageMutation.mutateAsync({
-        letterId: letterId,
-        imageData: uploadedImageUrl,
-        userPrompt: prompt,
-      });
+      // Check if it's a new letter or if we're returning to a letter that has no content yet
+      const needsInitialAnalysis = !letterQuery.data?.content || letterQuery.data.content === "";
       
-      // Update the visible steps based on the analyzed letter
-      const steps = determineVisibleSteps(updatedLetter);
-      setVisibleSteps(steps);
-      
-      // Move to the next step
-      const nextStep = steps[1] ?? "content";
-      setCurrentStep(nextStep);
+      // Run analysis if the image or prompt changed, or if there's no content yet
+      if (hasChangedSinceLastAnalysis || needsInitialAnalysis) {
+        setIsAnalyzing(true);
+        clearError();
+        
+        // Always make sure to analyze with the correct image URL
+        const updatedLetter = await analyzeImageMutation.mutateAsync({
+          letterId: currentLetterId,
+          imageData: imageUrl,
+          userPrompt: prompt,
+        });
+        
+        // Update the visible steps based on the analyzed letter
+        const steps = determineVisibleSteps(updatedLetter);
+        setVisibleSteps(steps);
+        
+        // Reset change tracking after analysis
+        setHasChangedSinceLastAnalysis(false);
+        
+        // Move to the next step
+        const nextStep = steps[1] ?? "content";
+        setCurrentStep(nextStep);
+      } else {
+        // Skip analysis and go to the next step without changing steps
+        const steps = useWizardStore.getState().visibleSteps;
+        const nextStep = steps[1] ?? "content";
+        setCurrentStep(nextStep);
+      }
     } catch (err) {
       handleError(err, "Failed to analyze the letter");
     } finally {
@@ -142,7 +219,7 @@ export default function UploadStep() {
         <Input
           label="What would you like to do with this letter?"
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={handlePromptChange}
           placeholder="e.g., Cancel this credit card, Request a refund..."
         />
       </div>
@@ -208,6 +285,12 @@ export default function UploadStep() {
       )}
       
       <ErrorMessage message={error} />
+      
+      {hasChangedSinceLastAnalysis && (
+        <p className="mb-4 text-sm text-amber-600">
+          Changes detected. Analysis will run when you continue.
+        </p>
+      )}
       
       {/* Next button that triggers analysis */}
       <Button 

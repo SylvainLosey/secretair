@@ -18,7 +18,9 @@ export function determineVisibleSteps(letter: Letter | null): WizardStep[] {
 }
 
 // Extract the address validation to a separate function for clarity and reuse
-function hasCompleteAddresses(letter: Letter): boolean {
+function hasCompleteAddresses(letter: Letter | null): boolean {
+  if (!letter) return false;
+  
   return !!(
     letter.senderName?.trim() && 
     letter.senderAddress?.trim() && 

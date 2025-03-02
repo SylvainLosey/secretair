@@ -14,25 +14,32 @@ export function useAutoSave<T>(
     if (isLoading) return;
     
     setSaveStatus('idle');
-    const timer = setTimeout(async () => {
-      try {
-        setSaveStatus('saving');
-        await saveFunction();
-        setSaveStatus('saved');
-        
-        // Reset to idle after showing saved for a while
-        const resetTimer = setTimeout(() => {
-          setSaveStatus('idle');
-        }, 3000);
-        
-        return () => clearTimeout(resetTimer);
-      } catch (error) {
-        setSaveStatus('error');
-        setErrorMessage(error instanceof Error ? error.message : 'Save failed');
-      }
+    let resetTimer: NodeJS.Timeout | undefined;
+    const timer = setTimeout(() => {
+      const saveData = async () => {
+        try {
+          setSaveStatus('saving');
+          await saveFunction();
+          setSaveStatus('saved');
+          
+          // Reset to idle after showing saved for a while
+          resetTimer = setTimeout(() => {
+            setSaveStatus('idle');
+          }, 3000);
+        } catch (error) {
+          setSaveStatus('error');
+          setErrorMessage(error instanceof Error ? error.message : 'Save failed');
+        }
+      };
+      
+      void saveData();
     }, delay);
     
-    return () => clearTimeout(timer);
+    // Single cleanup function that handles both timers
+    return () => {
+      clearTimeout(timer);
+      if (resetTimer) clearTimeout(resetTimer);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, saveFunction, delay, ...deps]);
 

@@ -19,13 +19,6 @@ import { useErrorHandler } from "~/hooks/useErrorHandler";
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
 
-// Define API response type for better type safety
-interface DownloadPdfResponse {
-  success: boolean;
-  message?: string;
-  letter?: Letter;
-}
-
 export default function ReviewStep() {
   const { letterId, setCurrentStep } = useWizardStore();
   const [isLoading, setIsLoading] = useState(true);
