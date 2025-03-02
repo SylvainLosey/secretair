@@ -27,12 +27,14 @@
   "uploadStep": {
     "templates": {
       "cancel": {
-        "title": "Annuler un service",
-        "description": "Rédigez une lettre formelle pour annuler un abonnement, une adhésion ou un service"
+        "title": "Résilier un Service",
+        "description": "Écrire une lettre formelle pour résilier un abonnement, une adhésion ou un service",
+        "prompt": "Écrire une lettre pour résilier le service indiqué dans l'image."
       },
       "scratch": {
-        "title": "Écrire depuis le début",
-        "description": "Créez une nouvelle lettre formelle sans répondre à un document existant"
+        "title": "Écrire de Zéro",
+        "description": "Créer une nouvelle lettre formelle sans répondre à un document existant",
+        "prompt": "Écrire une lettre formelle sur le sujet suivant."
       }
     },
     "promptLabel": "Que souhaitez-vous accomplir ?",
@@ -40,8 +42,8 @@
     "validationError": "Veuillez d'abord télécharger une image",
     "imageDescription": "Téléchargez une image du document auquel vous répondez",
     "imageDescriptionDetail": "Cela nous aide à comprendre le contexte de votre lettre",
-    "clickOrDrop": "Cliquez ou glissez pour remplacer",
-    "dragOrClick": "Glissez-déposez ou cliquez pour télécharger",
+    "clickOrDrop": "Cliquez ou faites glisser pour remplacer",
+    "dragOrClick": "Glissez et déposez ou cliquez pour télécharger",
     "dragOrClickDetail": "Formats pris en charge : JPG, PNG, PDF",
     "analyzing": "Analyse en cours...",
     "uploading": "Téléchargement...",

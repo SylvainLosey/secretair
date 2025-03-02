@@ -43,9 +43,17 @@ export const letterRouter = createTRPCRouter({
       z.object({
         letterId: z.string(),
         userPrompt: z.string(),
+        language: z.string().default('en'), // Add language parameter with English default
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Log the input parameters at the start
+      console.log("Letter generation started with params:", {
+        letterId: input.letterId,
+        userPrompt: input.userPrompt,
+        language: input.language
+      });
+      
       try {
         // Get the letter with the image URL
         const letter = await ctx.db.letter.findUnique({
@@ -68,16 +76,10 @@ export const letterRouter = createTRPCRouter({
         const hasImage = !!letter.imageUrl;
         
         if (hasImage) {
-          // Image + prompt analysis
-          const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-              {
-                role: "user",
-                content: [
-                  { 
-                    type: "text", 
-                    text: `Analyze this letter image and provide the following information in JSON format:
+          // Log the image-based prompt
+          const promptText = `Analyze this letter image and provide the following information in JSON format.
+                    Please respond in ${input.language} language.
+                    
                     {
                       "generatedResponse": "Body text for a formal response letter based on the following goal: ${input.userPrompt}",
                       "senderName": "Name of the person/entity who RECEIVED the original letter (the one in the image)",
@@ -87,10 +89,25 @@ export const letterRouter = createTRPCRouter({
                     }
                     
                     For the "generatedResponse" field:
-                    - Use the image to retrieveve context (account numbers, reference numbers, etc)
+                    - Use the image to retrieve context (account numbers, reference numbers, etc)
                     - DO NOT include date and addresses
-                    - Include line breaks as would a formal letter.
-                    - senderName is the author of the response` 
+                    - Include line breaks as would a formal letter
+                    - senderName is the author of the response
+                    - The response should be in ${input.language} language`;
+          
+          console.log("Using image analysis prompt with language:", input.language);
+          console.log("Prompt text sample:", promptText.substring(0, 200) + "...");
+          
+          // Image + prompt analysis
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { 
+                    type: "text", 
+                    text: promptText
                   },
                   {
                     type: "image_url",
@@ -143,19 +160,28 @@ export const letterRouter = createTRPCRouter({
             }
           } catch (error) {
             console.error("JSON Parse Error:", error);
+            throw new Error("Failed to parse AI response");
           }
         } else {
+          // Log the scratch prompt
+          const promptText = `Generate a formal letter based on the following instruction: "${input.userPrompt}"
+                
+                Please write the response in ${input.language} language.
+                
+                Only provide the BODY text of the letter. Do not include the date, addresses, salutation (Dear X), or closing (Sincerely, etc).
+                
+                The letter should be professional, concise, and directly address the purpose stated in the instruction.`;
+          
+          console.log("Using scratch prompt with language:", input.language);
+          console.log("Prompt text sample:", promptText.substring(0, 200) + "...");
+          
           // Prompt-only generation for "Write from Scratch"
           const response = await openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
               {
                 role: "user",
-                content: `Generate a formal letter based on the following instruction: "${input.userPrompt}"
-                
-                Only provide the BODY text of the letter. Do not include the date, addresses, salutation (Dear X), or closing (Sincerely, etc).
-                
-                The letter should be professional, concise, and directly address the purpose stated in the instruction.`
+                content: promptText
               },
             ],
           });
@@ -170,16 +196,7 @@ export const letterRouter = createTRPCRouter({
           analysis.receiverAddress = "";
         }
 
-        // Check if the letter exists before updating
-        const letterExists = await ctx.db.letter.findUnique({
-          where: { id: input.letterId },
-        });
-
-        if (!letterExists) {
-          throw new Error(`Letter with ID ${input.letterId} not found`);
-        }
-
-        // Then update the letter
+        // Update the letter with analysis results
         const updatedLetter = await ctx.db.letter.update({
           where: { id: input.letterId },
           data: {
@@ -192,10 +209,11 @@ export const letterRouter = createTRPCRouter({
           },
         });
 
+        console.log("Letter generation completed with language:", input.language);
         return updatedLetter;
       } catch (error) {
         console.error("Error analyzing or generating content:", error);
-        throw new Error("Failed to generate letter content");
+        throw new Error(`Failed to generate letter content: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }),
 

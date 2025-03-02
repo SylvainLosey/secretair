@@ -11,6 +11,7 @@ import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 // Define preset templates
 interface PresetTemplate {
@@ -22,35 +23,9 @@ interface PresetTemplate {
   icon: JSX.Element;
 }
 
-const presetTemplates: PresetTemplate[] = [
-  {
-    id: "cancel",
-    title: "Cancel a Service",
-    description: "Write a formal letter to cancel a subscription, membership, or service",
-    prompt: "Write a letter to cancel the service attached in the picture.",
-    requiresImage: true,
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    ),
-  },
-  {
-    id: "scratch",
-    title: "Write from Scratch",
-    description: "Create a new formal letter without responding to an existing document",
-    prompt: "Write a love letter to Ginette.",
-    requiresImage: false,
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-      </svg>
-    ),
-  },
-];
-
 export default function UploadStep() {
   const t = useTranslations('uploadStep');
+  const locale = useLocale();
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -220,7 +195,8 @@ export default function UploadStep() {
             // Make sure to use the correct ID and wait for the mutation to complete
             await generateLetterMutation.mutateAsync({
               letterId: currentLetterId,
-              userPrompt: prompt
+              userPrompt: prompt,
+              language: locale
             });
             
             // Reset change tracking
@@ -266,6 +242,7 @@ export default function UploadStep() {
           await generateLetterMutation.mutateAsync({
             letterId: currentLetterId ?? "",
             userPrompt: prompt,
+            language: locale
           });
           // Reset change tracking after analysis
           setHasChangedSinceLastAnalysis(false);
@@ -294,6 +271,34 @@ export default function UploadStep() {
     maxFiles: 1,
     disabled: selectedTemplate?.id === "scratch" && !selectedTemplate.requiresImage
   });
+
+  // Use translations for the preset templates
+  const presetTemplates: PresetTemplate[] = [
+    {
+      id: "cancel",
+      title: t('templates.cancel.title'),
+      description: t('templates.cancel.description'),
+      prompt: t('templates.cancel.prompt'),
+      requiresImage: true,
+      icon: (
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      ),
+    },
+    {
+      id: "scratch",
+      title: t('templates.scratch.title'),
+      description: t('templates.scratch.description'),
+      prompt: t('templates.scratch.prompt'),
+      requiresImage: false,
+      icon: (
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <div className="flex flex-col items-center">

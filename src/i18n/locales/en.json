@@ -28,11 +28,13 @@
     "templates": {
       "cancel": {
         "title": "Cancel a Service",
-        "description": "Write a formal letter to cancel a subscription, membership, or service"
+        "description": "Write a formal letter to cancel a subscription, membership, or service",
+        "prompt": "Write a letter to cancel the service attached in the picture."
       },
       "scratch": {
         "title": "Write from Scratch",
-        "description": "Create a new formal letter without responding to an existing document"
+        "description": "Create a new formal letter without responding to an existing document",
+        "prompt": "Write a formal letter about the following topic."
       }
     },
     "promptLabel": "What would you like to accomplish?",
