@@ -8,13 +8,13 @@ import { useEffect, useState } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api, type RouterOutputs } from "~/utils/api";
 import { Button } from "~/components/ui/button";
-import { SuccessMessage } from "~/components/common/SuccessMessage";
 import { LoadingSpinner } from "~/components/common/LoadingSpinner";
 import Image from "next/image";
 import { generatePDF } from "~/utils/pdf-generator";
 import { uploadPdf } from "~/utils/supabase-storage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
@@ -25,7 +25,6 @@ export default function ReviewStep() {
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const { handleError } = useErrorHandler();
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const t = useTranslations('reviewStep');
   
   const letterQuery = api.letter.getLetter.useQuery(
@@ -68,8 +67,7 @@ export default function ReviewStep() {
       
       // Download the PDF
       downloadBinaryFile(pdfBytes, fileName ?? "letter.pdf");
-      
-      setSuccessMessage("PDF downloaded and saved to your account!");
+      toast.success("PDF downloaded and saved to your account!");
     } catch (error) {
       handleError(error, "PDF Generation Error");
     } finally {
@@ -129,8 +127,7 @@ export default function ReviewStep() {
       receiverName: tempName,
       receiverAddress: tempAddress,
     });
-
-    setSuccessMessage("Addresses swapped successfully!");
+    toast.success("Addresses swapped successfully!");
   };
 
   const handleEditSection = (section: "addresses" | "content" | "signature") => {
@@ -155,10 +152,7 @@ export default function ReviewStep() {
     <div className="rounded-lg p-6">
       <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">
         {t('title')}
-      </h2>
-      
-      <SuccessMessage message={successMessage} />
-      
+      </h2>      
       <div className="mb-8">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
