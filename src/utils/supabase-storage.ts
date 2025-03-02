@@ -90,6 +90,74 @@ export async function uploadImage(
   }
 }
 
+export async function uploadPdf(
+  pdfBase64: string,
+  folder = 'pdfs'
+): Promise<string | null> {
+  try {
+    console.log('Starting PDF upload to folder:', folder);
+    
+    // Convert base64 to Blob
+    const byteCharacters = atob(pdfBase64);
+    const byteArrays = [];
+    
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    
+    const blob = new Blob(byteArrays, { type: 'application/pdf' });
+    
+    // Generate a unique filename
+    const fileName = `${uuidv4()}.pdf`;
+    const filePath = `${folder}/${fileName}`;
+    console.log('Generated file path:', filePath);
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabase
+      .storage
+      .from('letter-images') // your bucket name
+      .upload(filePath, blob, {
+        contentType: 'application/pdf',
+        upsert: false
+      });
+    
+    if (error) {
+      console.error('Error uploading PDF to Supabase:', {
+        message: error.message,
+        name: error.name
+      });
+      return null;
+    }
+    
+    console.log('Upload successful, file data:', data);
+    
+    // Get the public URL of the uploaded file
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from('letter-images')
+      .getPublicUrl(filePath);
+    
+    console.log('Generated public URL:', publicUrl);
+    
+    return publicUrl;
+  } catch (error) {
+    console.error('Error in uploadPdf:', error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    } : String(error));
+    return null;
+  }
+}
+
 // Helper to get file extension from data URL
 function getFileExtensionFromDataUrl(dataUrl: string): string {
   const regex = /data:image\/(\w+);/;

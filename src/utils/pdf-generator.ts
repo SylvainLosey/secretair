@@ -47,7 +47,7 @@ export async function generatePDF(letter: Letter): Promise<PDFResult> {
       
       if (letter.senderAddress) {
         const addressLines = letter.senderAddress.split('\n');
-        addressLines.forEach(line => {
+        addressLines.forEach((line: string) => {
           content.push({ text: line });
         });
       }
@@ -62,7 +62,7 @@ export async function generatePDF(letter: Letter): Promise<PDFResult> {
       
       if (letter.receiverAddress) {
         const addressLines = letter.receiverAddress.split('\n');
-        addressLines.forEach(line => {
+        addressLines.forEach((line: string) => {
           content.push({ text: line });
         });
       }
@@ -79,7 +79,7 @@ export async function generatePDF(letter: Letter): Promise<PDFResult> {
       // Add letter content
       if (letter.content) {
         const contentLines = letter.content.split('\n');
-        contentLines.forEach(line => {
+        contentLines.forEach((line: string) => {
           content.push({ text: line, margin: [0, 0, 0, 5] });
         });
       }

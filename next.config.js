@@ -12,6 +12,19 @@ const config = {
       'yrdmxkihiticmqqoicpe.supabase.co',
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/pdfs/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/pdf',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default config;
