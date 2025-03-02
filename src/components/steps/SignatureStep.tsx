@@ -67,9 +67,10 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
       if (!sigCanvas.current && signature) {
         return true;
       }
-      
+      const trimmedCanvas = sigCanvas.current?.getTrimmedCanvas();
+
       // Get the signature data as a PNG
-      const signatureDataUrl = sigCanvas.current?.getTrimmedCanvas().toDataURL("image/png");
+      const signatureDataUrl = trimmedCanvas?.toDataURL('image/png');
 
       if (!signatureDataUrl) {
         throw new Error("Failed to trim signature");
