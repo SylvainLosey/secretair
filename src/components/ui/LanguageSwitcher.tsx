@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, usePathname } from '~/i18n/navigation';
 import { locales, type Locale } from '~/i18n/locales';
 
@@ -9,6 +9,7 @@ export function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations('languageSwitcher');
   
   const switchLocale = (newLocale: Locale) => {
     // Use the router to navigate to the same path but with a new locale
@@ -16,7 +17,7 @@ export function LanguageSwitcher() {
   };
   
   return (
-    <div className="flex text-sm text-blue-100">
+    <div className="flex text-sm text-blue-100" aria-label={t('ariaLabel')}>
       {locales.map((l) => (
         <React.Fragment key={l}>
           {l !== locales[0] && <span className="mx-1">|</span>}

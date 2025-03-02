@@ -5,6 +5,9 @@
     "footerText": "Postversand einfach gemacht",
     "chooseAction": "Wählen Sie, was Sie mit PrintMail machen möchten"
   },
+  "languageSwitcher": {
+    "ariaLabel": "Sprache auswählen"
+  },
   "wizard": {
     "steps": {
       "upload": "Hochladen",
@@ -34,11 +37,56 @@
     },
     "promptLabel": "Was möchten Sie erreichen?",
     "promptDescription": "Wählen Sie einen Vorlage oder erstellen Sie einen persönlichen Brief",
-    "validationError": "Bitte laden Sie zuerst ein Bild hoch"
+    "validationError": "Bitte laden Sie zuerst ein Bild hoch",
+    "imageDescription": "Laden Sie ein Bild des Dokuments hoch, auf das Sie antworten",
+    "imageDescriptionDetail": "Dies hilft uns, den Kontext Ihres Briefes zu verstehen",
+    "clickOrDrop": "Klicken oder ziehen Sie zum Ersetzen",
+    "dragOrClick": "Ziehen und ablegen oder klicken zum Hochladen",
+    "dragOrClickDetail": "Unterstützte Formate: JPG, PNG, PDF",
+    "analyzing": "Analysieren...",
+    "uploading": "Hochladen...",
+    "continue": "Fortfahren"
+  },
+  "addressesStep": {
+    "title": "Absender- und Empfängerdetails",
+    "description": "Bitte bestätigen oder aktualisieren Sie die Absender- und Empfängerinformationen für Ihren Brief.",
+    "senderSection": "Absender (Sie)",
+    "senderName": "Ihr Name",
+    "senderNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+    "senderAddress": "Ihre Adresse",
+    "senderAddressPlaceholder": "Geben Sie Ihre Adresse ein",
+    "recipientSection": "Empfänger",
+    "recipientName": "Name des Empfängers",
+    "recipientNamePlaceholder": "Geben Sie den Namen des Empfängers oder der Organisation ein",
+    "recipientAddress": "Adresse des Empfängers",
+    "recipientAddressPlaceholder": "Geben Sie die Adresse des Empfängers ein",
+    "saving": "Speichern..."
+  },
+  "contentStep": {
+    "title": "Briefinhalt bearbeiten",
+    "description": "Überprüfen und bearbeiten Sie den Inhalt Ihres Briefes",
+    "placeholder": "Geben Sie hier den Inhalt Ihres Briefes ein...",
+    "saving": "Speichern..."
+  },
+  "signatureStep": {
+    "title": "Ihre Unterschrift hinzufügen",
+    "description": "Unterschreiben Sie im Feld unten. Dies erscheint am Ende Ihres Briefes.",
+    "clearButton": "Löschen",
+    "saveButton": "Unterschrift speichern",
+    "drawNewButton": "Neue Unterschrift zeichnen",
+    "loading": "Unterschrift wird geladen..."
   },
   "reviewStep": {
-    "payButton": "Bezahlen & Brief senden",
+    "title": "Überprüfung Ihres Briefes",
+    "addressesSection": "Absender & Empfänger",
+    "swapAddresses": "Adressen tauschen",
+    "edit": "Bearbeiten",
+    "contentSection": "Briefinhalt",
+    "signatureSection": "Unterschrift",
+    "fromLabel": "Von",
+    "toLabel": "An",
     "downloadButton": "PDF herunterladen",
-    "paymentAlert": "In einer echten App würde dies zur Zahlung führen. Vorerst werden wir nur das PDF herunterladen."
+    "payButton": "Brief senden",
+    "paymentAlert": "Sie werden zur Zahlungsabwicklung weitergeleitet."
   }
 } 

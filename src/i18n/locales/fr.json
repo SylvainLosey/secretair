@@ -5,6 +5,9 @@
     "footerText": "Simplifier le courrier postal",
     "chooseAction": "Choisissez ce que vous voulez faire avec PrintMail"
   },
+  "languageSwitcher": {
+    "ariaLabel": "Sélectionner la langue"
+  },
   "wizard": {
     "steps": {
       "upload": "Télécharger",
@@ -34,11 +37,57 @@
     },
     "promptLabel": "Que souhaitez-vous accomplir ?",
     "promptDescription": "Choisissez un modèle ou créez une lettre personnalisée",
-    "validationError": "Veuillez d'abord télécharger une image"
+    "validationError": "Veuillez d'abord télécharger une image",
+    "imageDescription": "Téléchargez une image du document auquel vous répondez",
+    "imageDescriptionDetail": "Cela nous aide à comprendre le contexte de votre lettre",
+    "clickOrDrop": "Cliquez ou glissez pour remplacer",
+    "dragOrClick": "Glissez-déposez ou cliquez pour télécharger",
+    "dragOrClickDetail": "Formats pris en charge : JPG, PNG, PDF",
+    "analyzing": "Analyse en cours...",
+    "uploading": "Téléchargement...",
+    "continue": "Continuer"
+  },
+  "addressesStep": {
+    "title": "Détails de l'expéditeur et du destinataire",
+    "description": "Veuillez confirmer ou mettre à jour les informations de l'expéditeur et du destinataire pour votre lettre.",
+    "loading": "Chargement des informations d'adresse...",
+    "senderSection": "Expéditeur (Vous)",
+    "senderName": "Votre nom",
+    "senderNamePlaceholder": "Entrez votre nom complet",
+    "senderAddress": "Votre adresse",
+    "senderAddressPlaceholder": "Entrez votre adresse",
+    "recipientSection": "Destinataire",
+    "recipientName": "Nom du destinataire",
+    "recipientNamePlaceholder": "Entrez le nom du destinataire ou de l'organisation",
+    "recipientAddress": "Adresse du destinataire",
+    "recipientAddressPlaceholder": "Entrez l'adresse du destinataire",
+    "saving": "Sauvegarde en cours..."
+  },
+  "contentStep": {
+    "title": "Modifier le contenu de la lettre",
+    "description": "Révisez et modifiez le contenu de votre lettre",
+    "placeholder": "Saisissez le contenu de votre lettre ici...",
+    "saving": "Sauvegarde..."
+  },
+  "signatureStep": {
+    "title": "Ajoutez votre signature",
+    "description": "Signez dans la case ci-dessous. Cela apparaîtra au bas de votre lettre.",
+    "clearButton": "Effacer",
+    "saveButton": "Enregistrer la signature",
+    "drawNewButton": "Dessiner une nouvelle signature",
+    "loading": "Chargement de la signature..."
   },
   "reviewStep": {
-    "payButton": "Payer & Envoyer la lettre",
+    "title": "Révision de votre lettre",
+    "addressesSection": "Expéditeur et destinataire",
+    "swapAddresses": "Échanger les adresses",
+    "edit": "Modifier",
+    "contentSection": "Contenu de la lettre",
+    "signatureSection": "Signature",
+    "fromLabel": "De",
+    "toLabel": "À",
     "downloadButton": "Télécharger le PDF",
-    "paymentAlert": "Dans une vraie application, cela mènerait au paiement. Pour l'instant, nous allons simplement télécharger le PDF."
+    "payButton": "Envoyer la lettre",
+    "paymentAlert": "Cela vous dirigera vers le traitement du paiement."
   }
 } 

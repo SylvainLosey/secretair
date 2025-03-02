@@ -5,6 +5,9 @@
     "footerText": "Making postal mail simple",
     "chooseAction": "Choose what you would like to do with PrintMail"
   },
+  "languageSwitcher": {
+    "ariaLabel": "Select language"
+  },
   "wizard": {
     "steps": {
       "upload": "Upload",
@@ -34,11 +37,60 @@
     },
     "promptLabel": "What would you like to accomplish?",
     "promptDescription": "Choose a template or create a custom letter",
-    "validationError": "Please upload an image first"
+    "validationError": "Please upload an image first",
+    "imageDescription": "Upload an image of the document you're responding to",
+    "imageDescriptionDetail": "This helps us understand the context of your letter",
+    "clickOrDrop": "Click or drag to replace",
+    "dragOrClick": "Drag and drop or click to upload",
+    "dragOrClickDetail": "Supported formats: JPG, PNG, PDF",
+    "analyzing": "Analyzing...",
+    "uploading": "Uploading...",
+    "continue": "Continue"
+  },
+  "addressesStep": {
+    "title": "Sender & Recipient Details",
+    "description": "Please confirm or update the sender and recipient information for your letter.",
+    "loading": "Loading address information...",
+    "senderSection": "Sender (You)",
+    "senderName": "Your Name",
+    "senderNamePlaceholder": "Enter your full name",
+    "senderAddress": "Your Address",
+    "senderAddressPlaceholder": "Enter your address",
+    "recipientSection": "Recipient",
+    "recipientName": "Recipient Name",
+    "recipientNamePlaceholder": "Enter recipient's name or organization",
+    "recipientAddress": "Recipient Address",
+    "recipientAddressPlaceholder": "Enter recipient's address",
+    "saving": "Saving..."
+  },
+  "contentStep": {
+    "title": "Edit Letter Content",
+    "description": "Review and edit the content of your letter",
+    "loading": "Loading letter content...",
+    "placeholder": "Enter your letter content here...",
+    "saving": "Saving..."
+  },
+  "signatureStep": {
+    "title": "Add Your Signature",
+    "description": "Sign in the box below. This will appear at the bottom of your letter.",
+    "loading": "Loading signature...",
+    "drawNewButton": "Draw New Signature",
+    "clearButton": "Clear",
+    "saveButton": "Save Signature",
+    "saving": "Saving signature..."
   },
   "reviewStep": {
-    "payButton": "Pay & Send Letter",
+    "title": "Review Your Letter",
+    "loading": "Loading letter details...",
+    "addressesSection": "Sender & Recipient",
+    "swapAddresses": "Swap Addresses",
+    "edit": "Edit",
+    "contentSection": "Letter Content",
+    "signatureSection": "Signature",
+    "fromLabel": "From",
+    "toLabel": "To",
     "downloadButton": "Download PDF",
-    "paymentAlert": "In a real app, this would go to payment. For now, we'll just download the PDF."
+    "payButton": "Send Letter",
+    "paymentAlert": "This will take you to payment processing."
   }
 } 
