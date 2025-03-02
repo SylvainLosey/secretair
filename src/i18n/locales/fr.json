@@ -66,19 +66,22 @@
   "contentStep": {
     "title": "Modifier le contenu de la lettre",
     "description": "Révisez et modifiez le contenu de votre lettre",
+    "loading": "Chargement du contenu de la lettre...",
     "placeholder": "Saisissez le contenu de votre lettre ici...",
     "saving": "Sauvegarde..."
   },
   "signatureStep": {
     "title": "Ajoutez votre signature",
     "description": "Signez dans la case ci-dessous. Cela apparaîtra au bas de votre lettre.",
+    "loading": "Chargement de la signature...",
     "clearButton": "Effacer",
     "saveButton": "Enregistrer la signature",
     "drawNewButton": "Dessiner une nouvelle signature",
-    "loading": "Chargement de la signature..."
+    "saving": "Sauvegarde de la signature..."
   },
   "reviewStep": {
     "title": "Révision de votre lettre",
+    "loading": "Chargement des détails de la lettre...",
     "addressesSection": "Expéditeur et destinataire",
     "swapAddresses": "Échanger les adresses",
     "edit": "Modifier",

@@ -50,6 +50,7 @@
   "addressesStep": {
     "title": "Absender- und Empfängerdetails",
     "description": "Bitte bestätigen oder aktualisieren Sie die Absender- und Empfängerinformationen für Ihren Brief.",
+    "loading": "Adressinformationen werden geladen...",
     "senderSection": "Absender (Sie)",
     "senderName": "Ihr Name",
     "senderNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
@@ -65,19 +66,22 @@
   "contentStep": {
     "title": "Briefinhalt bearbeiten",
     "description": "Überprüfen und bearbeiten Sie den Inhalt Ihres Briefes",
+    "loading": "Briefinhalt wird geladen...",
     "placeholder": "Geben Sie hier den Inhalt Ihres Briefes ein...",
     "saving": "Speichern..."
   },
   "signatureStep": {
     "title": "Ihre Unterschrift hinzufügen",
     "description": "Unterschreiben Sie im Feld unten. Dies erscheint am Ende Ihres Briefes.",
+    "loading": "Unterschrift wird geladen...",
     "clearButton": "Löschen",
     "saveButton": "Unterschrift speichern",
     "drawNewButton": "Neue Unterschrift zeichnen",
-    "loading": "Unterschrift wird geladen..."
+    "saving": "Unterschrift wird gespeichert..."
   },
   "reviewStep": {
     "title": "Überprüfung Ihres Briefes",
+    "loading": "Briefdetails werden geladen...",
     "addressesSection": "Absender & Empfänger",
     "swapAddresses": "Adressen tauschen",
     "edit": "Bearbeiten",

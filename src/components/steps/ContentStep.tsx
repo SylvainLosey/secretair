@@ -5,6 +5,7 @@ import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
+import { useTranslations } from 'next-intl';
 
 // Define the interface for the exposed methods
 export interface ContentStepRef {
@@ -17,6 +18,7 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const t = useTranslations('contentStep');
 
   const letterQuery = api.letter.getLetter.useQuery(
     { id: letterId! },
@@ -64,8 +66,8 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
 
   return (
     <StepLayout
-      title="Edit Letter Content"
-      description="Review and edit the content of your letter"
+      title={t('title')}
+      description={t('description')}
       isLoading={isLoading}
       loadingMessage="Loading letter content..."
     >
@@ -73,13 +75,13 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
         value={content}
         onChange={handleContentChange}
         className="min-h-[300px] w-full rounded-lg border border-gray-300 p-4 focus:border-blue-500 focus:ring-blue-500"
-        placeholder="Enter your letter content here..."
+        placeholder={t('placeholder')}
       />
       
       {errorMessage && <ErrorMessage message={errorMessage} />}
       
       <div className="mt-2 text-right text-sm">
-        {isSaving && <span className="text-blue-500">Saving...</span>}
+        {isSaving && <span className="text-blue-500">{t('saving')}</span>}
       </div>
     </StepLayout>
   );

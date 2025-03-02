@@ -11,6 +11,7 @@ import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
+import { useTranslations } from 'next-intl';
 
 // Define the interface for the exposed methods
 export interface SignatureStepRef {
@@ -25,6 +26,7 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
   const { error, handleError, clearError } = useErrorHandler();
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const t = useTranslations('signatureStep');
   
   const letterQuery = api.letter.getLetter.useQuery(
     { id: letterId ?? "" },
@@ -112,24 +114,24 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
         onClick={clearSignature}
         disabled={isUploading}
       >
-        Clear
+        {t('clearButton')}
       </Button>
       <Button
         onClick={saveSignature}
         disabled={isUploading}
         isLoading={isUploading}
       >
-        Save Signature
+        {t('saveButton')}
       </Button>
     </div>
   );
 
   return (
     <StepLayout
-      title="Add Your Signature"
-      description="Sign in the box below. This will appear at the bottom of your letter."
+      title={t('title')}
+      description={t('description')}
       isLoading={isLoading}
-      loadingMessage="Loading signature..."
+      loadingMessage={t('loading')}
     >
       <ErrorMessage message={error} />
       
@@ -151,7 +153,7 @@ const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
               clearError();
             }}
           >
-            Draw New Signature
+            {t('drawNewButton')}
           </Button>
         </div>
       ) : (

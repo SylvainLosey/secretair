@@ -155,9 +155,9 @@ export default function ReviewStep() {
   }
 
   return (
-    <div className="rounded-lg  p-6">
+    <div className="rounded-lg p-6">
       <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">
-        Review Your Letter
+        {t('title')}
       </h2>
       
       <ErrorMessage message={error} />
@@ -166,26 +166,26 @@ export default function ReviewStep() {
       <div className="mb-8">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-500">Sender & Recipient</h3>
+            <h3 className="text-sm font-medium text-gray-500">{t('addressesSection')}</h3>
             <div className="flex space-x-2">
               <button
                 onClick={handleSwapAddresses}
                 className="text-sm font-medium text-blue-600 hover:underline"
               >
-                Swap Addresses
+                {t('swapAddresses')}
               </button>
               <button
                 onClick={() => handleEditSection("addresses")}
                 className="text-sm text-blue-600 hover:underline"
               >
-                Edit
+                {t('edit')}
               </button>
             </div>
           </div>
           
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">From</h4>
+              <h4 className="mb-2 text-xs font-medium text-gray-400">{t('fromLabel')}</h4>
               <div className="text-sm">
                 <p className="font-medium">{letter.senderName}</p>
                 <p className="whitespace-pre-line">{letter.senderAddress}</p>
@@ -193,7 +193,7 @@ export default function ReviewStep() {
             </div>
             
             <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">To</h4>
+              <h4 className="mb-2 text-xs font-medium text-gray-400">{t('toLabel')}</h4>
               <div className="text-sm">
                 <p className="font-medium">{letter.receiverName}</p>
                 <p className="whitespace-pre-line">{letter.receiverAddress}</p>
@@ -204,12 +204,12 @@ export default function ReviewStep() {
         
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-500">Letter Content</h3>
+            <h3 className="text-sm font-medium text-gray-500">{t('contentSection')}</h3>
             <button
               onClick={() => handleEditSection("content")}
               className="text-sm text-blue-600 hover:underline"
             >
-              Edit
+              {t('edit')}
             </button>
           </div>
           <div className="whitespace-pre-line rounded-md border border-gray-200 bg-white p-4">
@@ -220,12 +220,12 @@ export default function ReviewStep() {
         {letter.signatureUrl && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-500">Signature</h3>
+              <h3 className="text-sm font-medium text-gray-500">{t('signatureSection')}</h3>
               <button
                 onClick={() => handleEditSection("signature")}
                 className="text-sm text-blue-600 hover:underline"
               >
-                Edit
+                {t('edit')}
               </button>
             </div>
             <div className="rounded-md border border-gray-200 bg-white p-4">
@@ -253,7 +253,7 @@ export default function ReviewStep() {
             </svg>
           }
         >
-          Download PDF
+          {t('downloadButton')}
         </Button>
         
         <Button

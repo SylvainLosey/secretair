@@ -7,6 +7,7 @@ import { api } from "~/utils/api";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { Input } from "~/components/ui/Input";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
+import { useTranslations } from 'next-intl';
 
 // Define the interface for the exposed methods
 export interface AddressesStepRef {
@@ -22,6 +23,7 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const t = useTranslations('addressesStep');
 
   const letterQuery = api.letter.getLetter.useQuery(
     { id: letterId! },
@@ -71,22 +73,22 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
 
   return (
     <StepLayout
-      title="Sender & Recipient Details"
-      description="Please confirm or update the sender and recipient information for your letter."
+      title={t('title')}
+      description={t('description')}
       isLoading={isLoading}
       loadingMessage="Loading address information..."
     >
       <div className="mb-6">
-        <h3 className="mb-3 text-lg font-medium">Sender (You)</h3>
+        <h3 className="mb-3 text-lg font-medium">{t('senderSection')}</h3>
         <Input
-          label="Your Name"
+          label={t('senderName')}
           value={senderName}
           onChange={(e) => setSenderName(e.target.value)}
           placeholder="Enter your full name"
         />
         <div className="mb-4">
           <label className="mb-2 block text-sm font-medium text-gray-700">
-            Your Address
+            {t('senderAddress')}
           </label>
           <textarea
             value={senderAddress}
@@ -99,16 +101,16 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
       </div>
 
       <div>
-        <h3 className="mb-3 text-lg font-medium">Recipient</h3>
+        <h3 className="mb-3 text-lg font-medium">{t('recipientSection')}</h3>
         <Input
-          label="Recipient Name"
+          label={t('recipientName')}
           value={receiverName}
           onChange={(e) => setReceiverName(e.target.value)}
           placeholder="Enter recipient's name or organization"
         />
         <div className="mb-4">
           <label className="mb-2 block text-sm font-medium text-gray-700">
-            Recipient Address
+            {t('recipientAddress')}
           </label>
           <textarea
             value={receiverAddress}
@@ -123,7 +125,7 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
       {errorMessage && <ErrorMessage message={errorMessage} />}
       
       <div className="mt-2 text-right text-sm">
-        {isSaving && <span className="text-blue-500">Saving...</span>}
+        {isSaving && <span className="text-blue-500">{t('saving')}</span>}
       </div>
     </StepLayout>
   );
