@@ -5,7 +5,6 @@ import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
-import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
@@ -27,8 +26,8 @@ const presetTemplates: PresetTemplate[] = [
   {
     id: "cancel",
     title: "Cancel a Service",
-    description: "Write a letter to cancel a subscription, membership, or service",
-    prompt: "I need to cancel my subscription/service. Please write a formal cancellation letter that includes all necessary details to process this request.",
+    description: "Write a formal letter to cancel a subscription, membership, or service",
+    prompt: "Write a letter to cancel the service attached in the picture.",
     requiresImage: true,
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -39,8 +38,8 @@ const presetTemplates: PresetTemplate[] = [
   {
     id: "scratch",
     title: "Write from Scratch",
-    description: "Create a new letter without responding to an existing document",
-    prompt: "Please write a formal letter about the following topic: ",
+    description: "Create a new formal letter without responding to an existing document",
+    prompt: "Write a love letter to Ginette.",
     requiresImage: false,
     icon: (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -182,7 +181,7 @@ export default function UploadStep() {
     }
   };
 
-  const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value);
     setHasChangedSinceLastAnalysis(true);
   };
@@ -292,7 +291,6 @@ export default function UploadStep() {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
     },
     maxFiles: 1,
-    // Disable dropzone if "Write from Scratch" is selected
     disabled: selectedTemplate?.id === "scratch" && !selectedTemplate.requiresImage
   });
 
@@ -300,7 +298,7 @@ export default function UploadStep() {
     <div className="flex flex-col items-center">
       <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">Get Started</h2>
       <p className="mb-8 text-center text-gray-600">
-        Choose what you would like to do
+        Choose what you would like to do with SimplerPost
       </p>
       
       {/* Template selection grid */}
@@ -335,87 +333,93 @@ export default function UploadStep() {
       {selectedTemplate && (
         <>
           <div className="mb-6 w-full">
-            <Input
-              label="What would you like to accomplish?"
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              What would you like to accomplish?
+            </label>
+            <textarea
               value={prompt}
               onChange={handlePromptChange}
               placeholder={selectedTemplate.prompt}
+              className="w-full min-h-[100px] rounded-lg border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              rows={4}
             />
           </div>
           
-          {selectedTemplate.requiresImage ? (
-            <div
-              {...getRootProps()}
-              className={`group relative mb-6 flex h-72 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${
-                isDragActive 
-                  ? "border-blue-500 bg-blue-50" 
-                  : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
-              }`}
-            >
-              <input {...getInputProps()} />
+          {selectedTemplate.requiresImage && (
+            <>
+              <div className="mb-4 w-full">
+                <h3 className="mb-2 text-sm font-medium text-gray-700">
+                  Upload an image of the document related to your cancellation
+                </h3>
+                <p className="mb-4 text-sm text-gray-600">
+                  Upload a picture of an invoice, bill, or statement from the service you want to cancel. 
+                  This helps us extract important details like account numbers and service information.
+                </p>
+              </div>
               
-              {preview ? (
-                <div className="relative h-full w-full">
-                  <Image
-                    src={preview}
-                    alt="Uploaded letter"
-                    fill
-                    className="h-full w-full object-contain"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity group-hover:opacity-100">
-                    <p className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700">
-                      Click or drop to replace
+              <div
+                {...getRootProps()}
+                className={`group relative mb-6 flex h-72 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${
+                  isDragActive 
+                    ? "border-blue-500 bg-blue-50" 
+                    : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
+                }`}
+              >
+                <input {...getInputProps()} />
+                
+                {preview ? (
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={preview}
+                      alt="Uploaded document"
+                      fill
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity group-hover:opacity-100">
+                      <p className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                        Click or drop to replace
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center p-6">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                      <svg
+                        className="h-8 w-8"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-lg font-medium text-gray-700 mb-1">
+                      {isDragActive
+                        ? "Drop the image here"
+                        : "Drag and drop your document image"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      or click to browse files (JPG, PNG, GIF)
                     </p>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center p-6">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-500">
-                    <svg
-                      className="h-8 w-8"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-lg font-medium text-gray-700 mb-1">
-                    {isDragActive
-                      ? "Drop the image here"
-                      : "Drag and drop your letter image"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    or click to browse files (JPG, PNG, GIF)
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-center">
-              <p className="text-gray-600">No image needed for this template. Just click continue to start writing.</p>
-            </div>
+                )}
+              </div>
+            </>
           )}
           
           {isUploading && (
             <div className="mb-4">
-              <LoadingSpinner size="md" message="Uploading your letter..." />
+              <LoadingSpinner size="md" message="Uploading your document..." />
             </div>
           )}
           
           <ErrorMessage message={error} />
-          
-          {hasChangedSinceLastAnalysis && (
-            <p className="mb-4 text-sm text-amber-600">
-              Changes detected. Analysis will run when you continue.
-            </p>
-          )}
           
           {/* Next button that triggers analysis */}
           <Button 
@@ -429,7 +433,7 @@ export default function UploadStep() {
             isLoading={isAnalyzing}
             fullWidth
           >
-            Continue
+            {isAnalyzing ? "Analyzing..." : "Continue"}
           </Button>
         </>
       )}
