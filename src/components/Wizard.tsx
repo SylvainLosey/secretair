@@ -9,9 +9,10 @@ import SignatureStep from "./steps/SignatureStep";
 import ReviewStep from "./steps/ReviewStep";
 import { Button } from "./ui/Button";
 import { LoadingSpinner } from "./ui/LoadingSpinner";
+import { ALL_STEPS } from "~/lib/store";
 
 export function Wizard() {
-  const { currentStep, visibleSteps, goToNextStep, goToPreviousStep } = useWizardStore();
+  const { currentStep, goToNextStep, goToPreviousStep } = useWizardStore();
   const [isNavigating, ] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -63,18 +64,18 @@ export function Wizard() {
             <div 
               className="h-full bg-navy-600 transition-all duration-300" 
               style={{ 
-                width: `${(visibleSteps.indexOf(currentStep) / (visibleSteps.length - 1)) * 100}%` 
+                width: `${(ALL_STEPS.indexOf(currentStep) / (ALL_STEPS.length - 1)) * 100}%` 
               }}
             ></div>
           </div>
           
           {/* Steps */}
           <div className="relative flex justify-between">
-            {visibleSteps.map((step, index) => (
+            {ALL_STEPS.map((step, index) => (
               <div key={step} className="flex flex-col items-center">
                 <div 
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
-                    index <= visibleSteps.indexOf(currentStep)
+                    index <= ALL_STEPS.indexOf(currentStep)
                       ? "bg-navy-700 text-mint-100 shadow-sm"
                       : "bg-white text-gray-500 border border-gray-300"
                   }`}
@@ -83,7 +84,7 @@ export function Wizard() {
                 </div>
                 <span 
                   className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
-                    index <= visibleSteps.indexOf(currentStep) ? "text-navy-800" : "text-gray-500"
+                    index <= ALL_STEPS.indexOf(currentStep) ? "text-navy-800" : "text-gray-500"
                   }`}
                 >
                   {step.charAt(0).toUpperCase() + step.slice(1)}
@@ -105,8 +106,8 @@ export function Wizard() {
           <Button
             variant="secondary"
             onClick={goToPreviousStep}
-            disabled={visibleSteps.indexOf(currentStep) === 0 || isNavigating}
-            className={visibleSteps.indexOf(currentStep) === 0 ? "invisible" : ""}
+            disabled={ALL_STEPS.indexOf(currentStep) === 0 || isNavigating}
+            className={ALL_STEPS.indexOf(currentStep) === 0 ? "invisible" : ""}
           >
             Back
           </Button>
@@ -114,8 +115,8 @@ export function Wizard() {
           <Button
             variant="primary"
             onClick={goToNextStep}
-            disabled={visibleSteps.indexOf(currentStep) === visibleSteps.length - 1 || isNavigating}
-            className={visibleSteps.indexOf(currentStep) === visibleSteps.length - 1 ? "invisible" : ""}
+            disabled={ALL_STEPS.indexOf(currentStep) === ALL_STEPS.length - 1 || isNavigating}
+            className={ALL_STEPS.indexOf(currentStep) === ALL_STEPS.length - 1 ? "invisible" : ""}
             isLoading={isNavigating}
           >
             Next
