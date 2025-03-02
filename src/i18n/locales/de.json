@@ -28,19 +28,21 @@
     "templates": {
       "cancel": {
         "title": "Einen Dienst kündigen",
-        "description": "Schreiben Sie einen formellen Brief, um ein Abonnement, eine Mitgliedschaft oder einen Dienst zu kündigen"
+        "description": "Schreiben Sie einen formellen Brief, um ein Abonnement, eine Mitgliedschaft oder einen Dienst zu kündigen",
+        "prompt": "Schreiben Sie einen Brief, um den im Bild gezeigten Dienst zu kündigen."
       },
       "scratch": {
-        "title": "Von Grund auf schreiben",
-        "description": "Erstellen Sie einen neuen formellen Brief ohne auf ein bestehendes Dokument zu antworten"
+        "title": "Von Grund auf neu schreiben",
+        "description": "Erstellen Sie einen neuen formellen Brief, ohne auf ein bestehendes Dokument zu antworten",
+        "prompt": "Schreiben Sie einen formellen Brief zu folgendem Thema."
       }
     },
     "promptLabel": "Was möchten Sie erreichen?",
-    "promptDescription": "Wählen Sie einen Vorlage oder erstellen Sie einen persönlichen Brief",
+    "promptDescription": "Wählen Sie eine Vorlage oder erstellen Sie einen benutzerdefinierten Brief",
     "validationError": "Bitte laden Sie zuerst ein Bild hoch",
     "imageDescription": "Laden Sie ein Bild des Dokuments hoch, auf das Sie antworten",
     "imageDescriptionDetail": "Dies hilft uns, den Kontext Ihres Briefes zu verstehen",
-    "clickOrDrop": "Klicken oder ziehen Sie zum Ersetzen",
+    "clickOrDrop": "Klicken oder ziehen Sie, um zu ersetzen",
     "dragOrClick": "Ziehen und ablegen oder klicken zum Hochladen",
     "dragOrClickDetail": "Unterstützte Formate: JPG, PNG, PDF",
     "analyzing": "Analysieren...",
