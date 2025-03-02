@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 import { StepLayout } from "~/components/common/StepLayout";
 import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useTranslations } from 'next-intl';
+import { Textarea } from "~/components/ui/textarea";
 
 // Define the interface for the exposed methods
 export interface ContentStepRef {
@@ -71,10 +72,11 @@ const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
       isLoading={isLoading}
       loadingMessage="Loading letter content..."
     >
-      <textarea
+      <Textarea
         value={content}
         onChange={handleContentChange}
-        className="min-h-[300px] w-full rounded-lg border border-gray-300 p-4 focus:border-blue-500 focus:ring-blue-500"
+        className="min-h-[300px]"
+        rows={12}
         placeholder={t('placeholder')}
       />
       

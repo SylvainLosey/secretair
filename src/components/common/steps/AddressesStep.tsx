@@ -5,9 +5,11 @@ import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
 import { StepLayout } from "~/components/common/StepLayout";
-import { Input } from "~/components/common/Input";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import { ErrorMessage } from "~/components/common/ErrorMessage";
 import { useTranslations } from 'next-intl';
+import { Textarea } from "~/components/ui/textarea";
 
 // Define the interface for the exposed methods
 export interface AddressesStepRef {
@@ -80,8 +82,13 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
     >
       <div className="mb-6">
         <h3 className="mb-3 text-lg font-medium">{t('senderSection')}</h3>
+        <Label 
+          htmlFor="senderName" 
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          {t('senderName')}
+        </Label>
         <Input
-          label={t('senderName')}
           value={senderName}
           onChange={(e) => setSenderName(e.target.value)}
           placeholder="Enter your full name"
@@ -90,10 +97,9 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
           <label className="mb-2 block text-sm font-medium text-gray-700">
             {t('senderAddress')}
           </label>
-          <textarea
+          <Textarea
             value={senderAddress}
             onChange={(e) => setSenderAddress(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             rows={3}
             placeholder="Enter your address"
           />
@@ -102,8 +108,13 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
 
       <div>
         <h3 className="mb-3 text-lg font-medium">{t('recipientSection')}</h3>
+        <Label 
+          htmlFor="senderName" 
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          {t('recipientName')}
+        </Label>
         <Input
-          label={t('recipientName')}
           value={receiverName}
           onChange={(e) => setReceiverName(e.target.value)}
           placeholder="Enter recipient's name or organization"
@@ -112,10 +123,9 @@ const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
           <label className="mb-2 block text-sm font-medium text-gray-700">
             {t('recipientAddress')}
           </label>
-          <textarea
+          <Textarea
             value={receiverAddress}
             onChange={(e) => setReceiverAddress(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             rows={3}
             placeholder="Enter recipient's address"
           />

@@ -12,6 +12,7 @@ import { uploadImage } from '~/utils/supabase-storage';
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
+import { Textarea } from "~/components/ui/textarea";
 
 // Define preset templates
 interface PresetTemplate {
@@ -352,12 +353,12 @@ export default function UploadStep() {
             <label className="mb-2 block text-sm font-medium text-gray-700">
               {t('promptLabel')}
             </label>
-            <textarea
+            <Textarea
               value={prompt}
               onChange={handlePromptChange}
               placeholder={selectedTemplate.prompt}
-              className="w-full min-h-[100px] rounded-lg border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               rows={4}
+              className="min-h-[100px]"
             />
           </div>
           
