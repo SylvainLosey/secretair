@@ -7,7 +7,7 @@ import ContentStep, { type ContentStepRef } from "./common/steps/ContentStep";
 import AddressesStep, { type AddressesStepRef } from "./common/steps/AddressesStep";
 import SignatureStep, { type SignatureStepRef } from "./common/steps/SignatureStep";
 import ReviewStep from "./common/steps/ReviewStep";
-import { Button } from "./common/Button";
+import { Button } from "~/components/ui/button";
 import { LoadingSpinner } from "./common/LoadingSpinner";
 import { ALL_STEPS } from "~/lib/store";
 import { useTranslations } from 'next-intl';
@@ -154,12 +154,22 @@ export function Wizard() {
             
             {currentStep !== "review" && (
               <Button
-                variant="primary"
                 onClick={handleNextStep}
                 disabled={isNavigating}
-                isLoading={isNavigating}
+                className={isNavigating ? "opacity-70" : ""}
               >
-                {isNavigating ? t('buttons.saving') : t('buttons.next')}
+                {isNavigating ? (
+                  <>
+                    <span className="mr-2 size-4 animate-spin">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                    </span>
+                    {t('buttons.saving')}
+                  </>
+                ) : (
+                  t('buttons.next')
+                )}
               </Button>
             )}
           </div>
