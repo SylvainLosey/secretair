@@ -10,6 +10,7 @@ import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import Image from "next/image";
 import { uploadImage } from '~/utils/supabase-storage';
 import { useErrorHandler } from "~/hooks/useErrorHandler";
+import { useTranslations } from 'next-intl';
 
 // Define preset templates
 interface PresetTemplate {
@@ -49,6 +50,7 @@ const presetTemplates: PresetTemplate[] = [
 ];
 
 export default function UploadStep() {
+  const t = useTranslations('uploadStep');
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -295,45 +297,37 @@ export default function UploadStep() {
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">Get Started</h2>
+      <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">
+        {t('promptLabel')}
+      </h2>
       <p className="mb-8 text-center text-gray-600">
-        Choose what you would like to do with SimplerPost
+        {t('promptDescription')}
       </p>
       
       {/* Template selection grid */}
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
-        {presetTemplates.map((template) => (
-          <div
-            key={template.id}
-            onClick={() => handleSelectTemplate(template)}
-            className={`flex cursor-pointer flex-col rounded-lg border-2 p-4 transition-all hover:shadow-md ${
-              selectedTemplate?.id === template.id
-                ? "border-printmail-primary bg-printmail-primary bg-opacity-5"
-                : "border-gray-200 bg-white"
-            }`}
-          >
-            <div className="flex items-start">
-              <div className={`mr-3 rounded-full p-2 ${
-                selectedTemplate?.id === template.id
-                  ? "bg-printmail-primary text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}>
-                {template.icon}
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-800">{template.title}</h3>
-                <p className="text-sm text-gray-600">{template.description}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+        <div 
+          className={`p-4 border rounded-lg cursor-pointer ${selectedTemplate?.id === 'cancel' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+          onClick={() => handleSelectTemplate(presetTemplates[0])}
+        >
+          <h3 className="font-medium text-lg">{t('templates.cancel.title')}</h3>
+          <p className="text-gray-600 mt-1">{t('templates.cancel.description')}</p>
+        </div>
+        
+        <div 
+          className={`p-4 border rounded-lg cursor-pointer ${selectedTemplate?.id === 'scratch' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+          onClick={() => handleSelectTemplate(presetTemplates[1])}
+        >
+          <h3 className="font-medium text-lg">{t('templates.scratch.title')}</h3>
+          <p className="text-gray-600 mt-1">{t('templates.scratch.description')}</p>
+        </div>
       </div>
       
       {selectedTemplate && (
         <>
           <div className="my-6 w-full">
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              What would you like to accomplish?
+              {t('promptLabel')}
             </label>
             <textarea
               value={prompt}
@@ -348,11 +342,10 @@ export default function UploadStep() {
             <>
               <div className="mb-4 w-full">
                 <h3 className="mb-2 text-sm font-medium text-gray-700">
-                  Upload an image of the document related to your cancellation
+                  {t('imageDescription')}
                 </h3>
                 <p className="mb-4 text-sm text-gray-600">
-                  Upload a picture of an invoice, bill, or statement from the service you want to cancel. 
-                  This helps us extract important details like account numbers and service information.
+                  {t('imageDescriptionDetail')}
                 </p>
               </div>
               
@@ -376,7 +369,7 @@ export default function UploadStep() {
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 transition-opacity group-hover:opacity-100">
                       <p className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700">
-                        Click or drop to replace
+                        {t('clickOrDrop')}
                       </p>
                     </div>
                   </div>
@@ -399,12 +392,10 @@ export default function UploadStep() {
                       </svg>
                     </div>
                     <p className="text-lg font-medium text-gray-700 mb-1">
-                      {isDragActive
-                        ? "Drop the image here"
-                        : "Drag and drop your document image"}
+                      {t('dragOrClick')}
                     </p>
                     <p className="text-sm text-gray-500">
-                      or click to browse files (JPG, PNG, GIF)
+                      {t('dragOrClickDetail')}
                     </p>
                   </div>
                 )}
@@ -428,10 +419,10 @@ export default function UploadStep() {
             fullWidth
           >
             {isAnalyzing 
-              ? "Analyzing..." 
+              ? t('analyzing') 
               : isUploading 
-                ? "Uploading..." 
-                : "Continue"}
+                ? t('uploading') 
+                : t('continue')}
           </Button>
         </>
       )}

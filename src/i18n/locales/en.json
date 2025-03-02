@@ -1,0 +1,44 @@
+{
+  "common": {
+    "title": "PrintMail - Send Letters Without a Printer",
+    "description": "Send physical letters in a few clicks without a printer",
+    "footerText": "Making postal mail simple",
+    "chooseAction": "Choose what you would like to do with PrintMail"
+  },
+  "wizard": {
+    "steps": {
+      "upload": "Upload",
+      "content": "Content",
+      "addresses": "Addresses",
+      "signature": "Signature",
+      "review": "Review"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "saving": "Saving...",
+      "continue": "Continue"
+    },
+    "loading": "Loading next step..."
+  },
+  "uploadStep": {
+    "templates": {
+      "cancel": {
+        "title": "Cancel a Service",
+        "description": "Write a formal letter to cancel a subscription, membership, or service"
+      },
+      "scratch": {
+        "title": "Write from Scratch",
+        "description": "Create a new formal letter without responding to an existing document"
+      }
+    },
+    "promptLabel": "What would you like to accomplish?",
+    "promptDescription": "Choose a template or create a custom letter",
+    "validationError": "Please upload an image first"
+  },
+  "reviewStep": {
+    "payButton": "Pay & Send Letter",
+    "downloadButton": "Download PDF",
+    "paymentAlert": "In a real app, this would go to payment. For now, we'll just download the PDF."
+  }
+} 

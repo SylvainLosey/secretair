@@ -1,17 +1,26 @@
+"use client";
+
 import React from 'react';
 import { Logo } from './Logo';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface PageLayoutProps {
   children: React.ReactNode;
 }
 
 export function PageLayout({ children }: PageLayoutProps) {
+  const t = useTranslations('common');
+  
   return (
     <div className="flex min-h-screen flex-col">
       <header className="bg-blue-900 py-5 shadow-sm">
-        <div className="container mx-auto px-4">
-          <Logo />
-          <p className="text-blue-100 text-sm mt-2">Send physical mail without the hassle</p>
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <div>
+            <Logo />
+            <p className="text-blue-100 text-sm mt-2">{t('description')}</p>
+          </div>
+          <LanguageSwitcher />
         </div>
       </header>
       
@@ -23,7 +32,7 @@ export function PageLayout({ children }: PageLayoutProps) {
       
       <footer className="bg-blue-900 py-4 shadow-inner">
         <div className="container mx-auto px-4 text-center text-blue-100">
-          <p>&copy; {new Date().getFullYear()} PrintMail - Making postal mail simple</p>
+          <p>&copy; {new Date().getFullYear()} PrintMail - {t('footerText')}</p>
         </div>
       </footer>
     </div>

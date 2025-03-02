@@ -1,0 +1,44 @@
+{
+  "common": {
+    "title": "PrintMail - Briefe ohne Drucker versenden",
+    "description": "Versenden Sie physische Briefe mit wenigen Klicks ohne Drucker",
+    "footerText": "Postversand einfach gemacht",
+    "chooseAction": "Wählen Sie, was Sie mit PrintMail machen möchten"
+  },
+  "wizard": {
+    "steps": {
+      "upload": "Hochladen",
+      "content": "Inhalt",
+      "addresses": "Adressen",
+      "signature": "Unterschrift",
+      "review": "Überprüfung"
+    },
+    "buttons": {
+      "back": "Zurück",
+      "next": "Weiter",
+      "saving": "Speichern...",
+      "continue": "Fortfahren"
+    },
+    "loading": "Nächster Schritt wird geladen..."
+  },
+  "uploadStep": {
+    "templates": {
+      "cancel": {
+        "title": "Einen Dienst kündigen",
+        "description": "Schreiben Sie einen formellen Brief, um ein Abonnement, eine Mitgliedschaft oder einen Dienst zu kündigen"
+      },
+      "scratch": {
+        "title": "Von Grund auf schreiben",
+        "description": "Erstellen Sie einen neuen formellen Brief ohne auf ein bestehendes Dokument zu antworten"
+      }
+    },
+    "promptLabel": "Was möchten Sie erreichen?",
+    "promptDescription": "Wählen Sie einen Vorlage oder erstellen Sie einen persönlichen Brief",
+    "validationError": "Bitte laden Sie zuerst ein Bild hoch"
+  },
+  "reviewStep": {
+    "payButton": "Bezahlen & Brief senden",
+    "downloadButton": "PDF herunterladen",
+    "paymentAlert": "In einer echten App würde dies zur Zahlung führen. Vorerst werden wir nur das PDF herunterladen."
+  }
+} 

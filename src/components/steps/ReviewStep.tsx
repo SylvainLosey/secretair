@@ -15,6 +15,7 @@ import Image from "next/image";
 import { generatePDF } from "~/utils/pdf-generator";
 import { uploadPdf } from "~/utils/supabase-storage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
+import { useTranslations } from 'next-intl';
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
@@ -26,6 +27,7 @@ export default function ReviewStep() {
   const [isDownloading, setIsDownloading] = useState(false);
   const { error, handleError, clearError } = useErrorHandler();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const t = useTranslations('reviewStep');
   
   const letterQuery = api.letter.getLetter.useQuery(
     { id: letterId ?? "" },
@@ -257,11 +259,11 @@ export default function ReviewStep() {
         <Button
           variant="primary"
           onClick={() => {
-            alert("In a real app, this would go to payment. For now, we'll just download the PDF.");
+            alert(t('paymentAlert'));
             void downloadPdf();
           }}
         >
-          Pay & Send Letter
+          {t('payButton')}
         </Button>
       </div>
     </div>

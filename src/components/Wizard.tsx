@@ -10,11 +10,13 @@ import ReviewStep from "./steps/ReviewStep";
 import { Button } from "./ui/Button";
 import { LoadingSpinner } from "./ui/LoadingSpinner";
 import { ALL_STEPS } from "~/lib/store";
+import { useTranslations } from 'next-intl';
 
 export function Wizard() {
   const { currentStep, goToNextStep, goToPreviousStep } = useWizardStore();
   const [isNavigating, setIsNavigating] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const t = useTranslations('wizard');
 
   // Create refs to access step component methods
   const contentStepRef = useRef<ContentStepRef>(null);
@@ -49,11 +51,11 @@ export function Wizard() {
 
   const renderStepIndicator = () => {
     const steps = [
-      { id: ALL_STEPS[0], label: "Upload" },
-      { id: ALL_STEPS[1], label: "Content" },
-      { id: ALL_STEPS[2], label: "Addresses" },
-      { id: ALL_STEPS[3], label: "Signature" },
-      { id: ALL_STEPS[4], label: "Review" },
+      { id: ALL_STEPS[0], label: t('steps.upload') },
+      { id: ALL_STEPS[1], label: t('steps.content') },
+      { id: ALL_STEPS[2], label: t('steps.addresses') },
+      { id: ALL_STEPS[3], label: t('steps.signature') },
+      { id: ALL_STEPS[4], label: t('steps.review') },
     ];
 
     return (
@@ -99,7 +101,7 @@ export function Wizard() {
     if (isTransitioning) {
       return (
         <div className="flex justify-center py-12">
-          <LoadingSpinner size="lg" message="Loading next step..." />
+          <LoadingSpinner size="lg" message={t('loading')} />
         </div>
       );
     }
@@ -147,7 +149,7 @@ export function Wizard() {
               onClick={goToPreviousStep}
               disabled={isNavigating}
             >
-              Back
+              {t('buttons.back')}
             </Button>
             
             {currentStep !== "review" && (
@@ -157,7 +159,7 @@ export function Wizard() {
                 disabled={isNavigating}
                 isLoading={isNavigating}
               >
-                {isNavigating ? "Saving..." : "Next"}
+                {isNavigating ? t('buttons.saving') : t('buttons.next')}
               </Button>
             )}
           </div>

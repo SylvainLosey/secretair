@@ -1,0 +1,44 @@
+{
+  "common": {
+    "title": "PrintMail - Envoyez des lettres sans imprimante",
+    "description": "Envoyez des lettres physiques en quelques clics sans imprimante",
+    "footerText": "Simplifier le courrier postal",
+    "chooseAction": "Choisissez ce que vous voulez faire avec PrintMail"
+  },
+  "wizard": {
+    "steps": {
+      "upload": "Télécharger",
+      "content": "Contenu",
+      "addresses": "Adresses",
+      "signature": "Signature",
+      "review": "Révision"
+    },
+    "buttons": {
+      "back": "Retour",
+      "next": "Suivant",
+      "saving": "Sauvegarde...",
+      "continue": "Continuer"
+    },
+    "loading": "Chargement de l'étape suivante..."
+  },
+  "uploadStep": {
+    "templates": {
+      "cancel": {
+        "title": "Annuler un service",
+        "description": "Rédigez une lettre formelle pour annuler un abonnement, une adhésion ou un service"
+      },
+      "scratch": {
+        "title": "Écrire depuis le début",
+        "description": "Créez une nouvelle lettre formelle sans répondre à un document existant"
+      }
+    },
+    "promptLabel": "Que souhaitez-vous accomplir ?",
+    "promptDescription": "Choisissez un modèle ou créez une lettre personnalisée",
+    "validationError": "Veuillez d'abord télécharger une image"
+  },
+  "reviewStep": {
+    "payButton": "Payer & Envoyer la lettre",
+    "downloadButton": "Télécharger le PDF",
+    "paymentAlert": "Dans une vraie application, cela mènerait au paiement. Pour l'instant, nous allons simplement télécharger le PDF."
+  }
+} 
