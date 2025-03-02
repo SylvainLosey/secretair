@@ -1,7 +1,7 @@
 "use client";
 
 // src/components/steps/SignatureStep.tsx
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
@@ -12,10 +12,15 @@ import { uploadImage } from '~/utils/supabase-storage';
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 
-export default function SignatureStep() {
+// Define the interface for the exposed methods
+export interface SignatureStepRef {
+  saveData: () => Promise<boolean>;
+}
+
+const SignatureStep = forwardRef<SignatureStepRef>((_, ref) => {
   const { letterId } = useWizardStore();
   const [signature, setSignature] = useState<string | null>(null);
-  const [, setUploadedSignatureUrl] = useState<string | null>(null);
+  const [uploadedSignatureUrl, setUploadedSignatureUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { error, handleError, clearError } = useErrorHandler();
   const sigCanvas = useRef<SignatureCanvas>(null);
@@ -45,62 +50,59 @@ export default function SignatureStep() {
       clearError();
     }
   };
-
-  const saveSignature = async () => {
-    if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
-      handleError(new Error("Please add your signature before saving"), "Validation Error");
-      return;
-    }
-    
-    if (!letterId) {
-      handleError(new Error("Letter ID is missing"), "Data Error");
-      return;
-    }
+  
+  const saveSignature = async (): Promise<boolean> => {
+    if (!letterId) return false;
     
     try {
       setIsUploading(true);
       clearError();
       
-      // Log canvas properties before trimming
-      console.log("Original canvas dimensions:", {
-        width: sigCanvas.current.getCanvas().width,
-        height: sigCanvas.current.getCanvas().height
-      });
-      
-      // Get the trimmed canvas
-      const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
-      
-      // Log canvas properties after trimming
-      console.log("Trimmed canvas dimensions:", {
-        width: trimmedCanvas.width, 
-        height: trimmedCanvas.height
-      });
-      
-      const signatureDataUrl = trimmedCanvas.toDataURL('image/png');
-      
-      // Upload to Supabase
-      const signatureUrl = await uploadImage(signatureDataUrl, 'signatures');
-      
-      if (!signatureUrl) {
-        throw new Error('Failed to upload signature');
+      // If we already have a signature and it's already uploaded, no need to re-upload
+      if (signature && signature === uploadedSignatureUrl) {
+        return true;
       }
       
-      // Save the URL in state for later use
+      // If there's no signature drawn but we're using an existing one
+      if (!sigCanvas.current && signature) {
+        return true;
+      }
+      
+      // Get the signature data as a PNG
+      const signatureDataUrl = sigCanvas.current?.getTrimmedCanvas().toDataURL("image/png");
+
+      if (!signatureDataUrl) {
+        throw new Error("Failed to trim signature");
+      }
+
+      const signatureUrl = await uploadImage(signatureDataUrl, "signatures");
+      
+      if (!signatureUrl) {
+        throw new Error("Failed to upload signature");
+      }
+      // Update signature in state
+      setSignature(signatureUrl);
       setUploadedSignatureUrl(signatureUrl);
       
-      // Save the URL in your database
+      // Update letter in database
       await updateLetterMutation.mutateAsync({
         id: letterId,
         signatureUrl: signatureUrl,
       });
       
-      // Update local state with the URL
-      setSignature(signatureUrl);
-      setIsUploading(false);
+      return true;
     } catch (error) {
-      handleError(error, "Error saving signature");
+      handleError(error, "Signature Error");
+      return false;
+    } finally {
+      setIsUploading(false);
     }
   };
+  
+  // Expose the saveData method to the parent component
+  useImperativeHandle(ref, () => ({
+    saveData: saveSignature
+  }));
 
   const renderSignatureActions = () => (
     <div className="flex space-x-4">
@@ -168,4 +170,8 @@ export default function SignatureStep() {
       )}
     </StepLayout>
   );
-}
+});
+
+SignatureStep.displayName = "SignatureStep";
+
+export default SignatureStep;

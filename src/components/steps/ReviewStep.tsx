@@ -153,7 +153,7 @@ export default function ReviewStep() {
   }
 
   return (
-    <div className="rounded-lg bg-gray-50 p-6">
+    <div className="rounded-lg  p-6">
       <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">
         Review Your Letter
       </h2>

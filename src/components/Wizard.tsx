@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useWizardStore } from "~/lib/store";
 import UploadStep from "./steps/UploadStep";
-import ContentStep from "./steps/ContentStep";
-import AddressesStep from "./steps/AddressesStep";
-import SignatureStep from "./steps/SignatureStep";
+import ContentStep, { type ContentStepRef } from "./steps/ContentStep";
+import AddressesStep, { type AddressesStepRef } from "./steps/AddressesStep";
+import SignatureStep, { type SignatureStepRef } from "./steps/SignatureStep";
 import ReviewStep from "./steps/ReviewStep";
 import { Button } from "./ui/Button";
 import { LoadingSpinner } from "./ui/LoadingSpinner";
@@ -13,8 +13,87 @@ import { ALL_STEPS } from "~/lib/store";
 
 export function Wizard() {
   const { currentStep, goToNextStep, goToPreviousStep } = useWizardStore();
-  const [isNavigating, ] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Create refs to access step component methods
+  const contentStepRef = useRef<ContentStepRef>(null);
+  const addressesStepRef = useRef<AddressesStepRef>(null);
+  const signatureStepRef = useRef<SignatureStepRef>(null);
+
+  const handleNextStep = async () => {
+    setIsNavigating(true);
+    
+    // Get the current step's save function
+    let canProceed = true;
+    
+    try {
+      // Call the appropriate step's save function based on the current step
+      if (currentStep === "content" && contentStepRef.current) {
+        canProceed = await contentStepRef.current.saveData();
+      } else if (currentStep === "addresses" && addressesStepRef.current) {
+        canProceed = await addressesStepRef.current.saveData();
+      } else if (currentStep === "signature" && signatureStepRef.current) {
+        canProceed = await signatureStepRef.current.saveData();
+      }
+      
+      if (canProceed) {
+        goToNextStep();
+      }
+    } catch (error) {
+      console.error("Error saving data:", error);
+    } finally {
+      setIsNavigating(false);
+    }
+  };
+
+  const renderStepIndicator = () => {
+    const steps = [
+      { id: "upload", label: "Upload" },
+      { id: "content", label: "Content" },
+      { id: "addresses", label: "Addresses" },
+      { id: "signature", label: "Signature" },
+      { id: "review", label: "Review" },
+    ];
+
+    return (
+      <div className="mb-8">
+        <div className="flex justify-between">
+          {steps.map((step, index) => {
+            const isActive = currentStep === step.id;
+            const isPast = ALL_STEPS.indexOf(step.id) < ALL_STEPS.indexOf(currentStep);
+            
+            return (
+              <div key={step.id} className="flex flex-col items-center">
+                <div 
+                  className={`
+                    flex h-8 w-8 items-center justify-center rounded-full 
+                    ${isActive ? "bg-blue-600 text-white" : 
+                      isPast ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}
+                  `}
+                >
+                  {index + 1}
+                </div>
+                <span className={`mt-2 text-xs ${isActive ? "font-medium text-blue-600" : 
+                  isPast ? "text-blue-600" : "text-gray-400"}`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="relative mt-2">
+          <div className="absolute top-0 h-1 w-full bg-gray-200"></div>
+          <div 
+            className="absolute top-0 h-1 bg-blue-600 transition-all duration-300"
+            style={{ 
+              width: `${(ALL_STEPS.indexOf(currentStep) / (ALL_STEPS.length - 1)) * 100}%`
+            }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
 
   const renderStep = () => {
     if (isTransitioning) {
@@ -29,11 +108,11 @@ export function Wizard() {
       case "upload":
         return <UploadStep />;
       case "content":
-        return <ContentStep />;
+        return <ContentStep ref={contentStepRef} />;
       case "addresses":
-        return <AddressesStep />;
+        return <AddressesStep ref={addressesStepRef} />;
       case "signature":
-        return <SignatureStep />;
+        return <SignatureStep ref={signatureStepRef} />;
       case "review":
         return <ReviewStep />;
       default:
@@ -55,72 +134,33 @@ export function Wizard() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      {/* Steps indicator with proper alignment */}
-      <div className="mb-10">
-        <div className="relative">
-          {/* Progress bar under the steps */}
-          <div className="absolute top-5 left-0 h-1 w-full bg-gray-200">
-            <div 
-              className="h-full bg-navy-600 transition-all duration-300" 
-              style={{ 
-                width: `${(ALL_STEPS.indexOf(currentStep) / (ALL_STEPS.length - 1)) * 100}%` 
-              }}
-            ></div>
-          </div>
-          
-          {/* Steps */}
-          <div className="relative flex justify-between">
-            {ALL_STEPS.map((step, index) => (
-              <div key={step} className="flex flex-col items-center">
-                <div 
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors duration-300 ${
-                    index <= ALL_STEPS.indexOf(currentStep)
-                      ? "bg-navy-700 text-mint-100 shadow-sm"
-                      : "bg-white text-gray-500 border border-gray-300"
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                <span 
-                  className={`mt-2 text-center text-xs font-medium transition-colors duration-300 ${
-                    index <= ALL_STEPS.indexOf(currentStep) ? "text-navy-800" : "text-gray-500"
-                  }`}
-                >
-                  {step.charAt(0).toUpperCase() + step.slice(1)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Step content - improved card with better shadow and spacing */}
-      <div className="mb-8 overflow-hidden rounded-xl border border-gray-200 bg-white p-6 md:p-8 shadow-md">
+    <div className="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      {renderStepIndicator()}
+      
+      <div className="mb-6">
         {renderStep()}
       </div>
-
-      {/* Navigation buttons - using our new Button component */}
+      
       {currentStep !== "upload" && (
-        <div className="flex justify-between">
+        <div className="mt-6 flex justify-between">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={goToPreviousStep}
-            disabled={ALL_STEPS.indexOf(currentStep) === 0 || isNavigating}
-            className={ALL_STEPS.indexOf(currentStep) === 0 ? "invisible" : ""}
+            disabled={isNavigating}
           >
             Back
           </Button>
           
-          <Button
-            variant="primary"
-            onClick={goToNextStep}
-            disabled={ALL_STEPS.indexOf(currentStep) === ALL_STEPS.length - 1 || isNavigating}
-            className={ALL_STEPS.indexOf(currentStep) === ALL_STEPS.length - 1 ? "invisible" : ""}
-            isLoading={isNavigating}
-          >
-            Next
-          </Button>
+          {currentStep !== "review" && (
+            <Button
+              variant="primary"
+              onClick={handleNextStep}
+              disabled={isNavigating}
+              isLoading={isNavigating}
+            >
+              {isNavigating ? "Saving..." : "Next"}
+            </Button>
+          )}
         </div>
       )}
     </div>

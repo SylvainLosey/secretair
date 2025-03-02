@@ -1,16 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
-import { useAutoSave } from "~/hooks/useAutoSave";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 
-export default function ContentStep() {
+// Define the interface for the exposed methods
+export interface ContentStepRef {
+  saveData: () => Promise<boolean>;
+}
+
+const ContentStep = forwardRef<ContentStepRef>((_, ref) => {
   const { letterId } = useWizardStore();
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const letterQuery = api.letter.getLetter.useQuery(
     { id: letterId! },
@@ -30,22 +36,31 @@ export default function ContentStep() {
     setContent(e.target.value);
   };
 
-  const saveContent = async () => {
-    if (!letterId) return;
+  const saveContent = async (): Promise<boolean> => {
+    if (!letterId) return false;
     
-    await updateLetterMutation.mutateAsync({
-      id: letterId,
-      content,
-    });
+    try {
+      setIsSaving(true);
+      setErrorMessage(null);
+      
+      await updateLetterMutation.mutateAsync({
+        id: letterId,
+        content,
+      });
+      
+      return true; // Save successful
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to save content");
+      return false; // Save failed
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const { saveStatus, errorMessage } = useAutoSave(
-    content,
-    saveContent,
-    [content, letterId],
-    1000,
-    isLoading
-  );
+  // Expose the saveData method to the parent component
+  useImperativeHandle(ref, () => ({
+    saveData: saveContent
+  }));
 
   return (
     <StepLayout
@@ -64,9 +79,12 @@ export default function ContentStep() {
       {errorMessage && <ErrorMessage message={errorMessage} />}
       
       <div className="mt-2 text-right text-sm">
-        {saveStatus === 'saved' && <span className="text-green-500">Changes saved</span>}
-        {saveStatus === 'error' && <span className="text-red-500">Save error</span>}
+        {isSaving && <span className="text-blue-500">Saving...</span>}
       </div>
     </StepLayout>
   );
-}
+});
+
+ContentStep.displayName = "ContentStep";
+
+export default ContentStep;

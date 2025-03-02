@@ -1,21 +1,27 @@
 "use client";
 
 // src/components/steps/AddressesStep.tsx (continued)
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api } from "~/utils/api";
-import { useAutoSave } from "~/hooks/useAutoSave";
 import { StepLayout } from "~/components/ui/StepLayout";
 import { Input } from "~/components/ui/Input";
 import { ErrorMessage } from "~/components/ui/ErrorMessage";
 
-export default function AddressesStep() {
+// Define the interface for the exposed methods
+export interface AddressesStepRef {
+  saveData: () => Promise<boolean>;
+}
+
+const AddressesStep = forwardRef<AddressesStepRef>((_, ref) => {
   const { letterId } = useWizardStore();
   const [senderName, setSenderName] = useState("");
   const [senderAddress, setSenderAddress] = useState("");
   const [receiverName, setReceiverName] = useState("");
   const [receiverAddress, setReceiverAddress] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const letterQuery = api.letter.getLetter.useQuery(
     { id: letterId! },
@@ -34,25 +40,34 @@ export default function AddressesStep() {
     }
   }, [letterQuery.data]);
 
-  const saveAddresses = async () => {
-    if (!letterId) return;
+  const saveAddresses = async (): Promise<boolean> => {
+    if (!letterId) return false;
     
-    await updateLetterMutation.mutateAsync({
-      id: letterId,
-      senderName,
-      senderAddress,
-      receiverName,
-      receiverAddress,
-    });
+    try {
+      setIsSaving(true);
+      setErrorMessage(null);
+      
+      await updateLetterMutation.mutateAsync({
+        id: letterId,
+        senderName,
+        senderAddress,
+        receiverName,
+        receiverAddress,
+      });
+      
+      return true; // Save successful
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to save addresses");
+      return false; // Save failed
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const { saveStatus, errorMessage } = useAutoSave(
-    { senderName, senderAddress, receiverName, receiverAddress },
-    saveAddresses,
-    [senderName, senderAddress, receiverName, receiverAddress, letterId],
-    1000,
-    isLoading
-  );
+  // Expose the saveData method to the parent component
+  useImperativeHandle(ref, () => ({
+    saveData: saveAddresses
+  }));
 
   return (
     <StepLayout
@@ -104,13 +119,16 @@ export default function AddressesStep() {
           />
         </div>
       </div>
-
+      
       {errorMessage && <ErrorMessage message={errorMessage} />}
       
       <div className="mt-2 text-right text-sm">
-        {saveStatus === 'saved' && <span className="text-green-500">Changes saved</span>}
-        {saveStatus === 'error' && <span className="text-red-500">Save error</span>}
+        {isSaving && <span className="text-blue-500">Saving...</span>}
       </div>
     </StepLayout>
   );
-}
+});
+
+AddressesStep.displayName = "AddressesStep";
+
+export default AddressesStep;
