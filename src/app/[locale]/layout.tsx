@@ -9,9 +9,38 @@ import { Toaster } from '~/components/ui/sonner';
 import { AppProviders } from "~/app/providers";
 
 export const metadata = {
-  title: "PostMail - Send Letters Without a Printer",
-  description: "Send physical letters in a few clicks without a printer",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: "PostMail - Send Physical Letters Without a Printer",
+  description: "Send formal letters, cancel services, or respond to documents without needing a printer. Fast, affordable physical mail delivery in a few clicks.",
+  keywords: "mail service, send letters, cancel subscriptions, no printer needed, physical mail online",
+  openGraph: {
+    title: "PostMail - Send Letters Without a Printer",
+    description: "Send formal letters, cancel services, or respond to documents without needing a printer.",
+    url: "https://postmail.ai",
+    siteName: "PostMail",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://postmail.ai",
+    languages: {
+      en: "https://postmail.ai/en",
+      fr: "https://postmail.ai/fr",
+      de: "https://postmail.ai/de",
+    },
+  },
+  // TODO: add verification
+  // verification: {
+  //   google: "your-google-verification-code",
+  // },
 };
 
 export function generateStaticParams() {

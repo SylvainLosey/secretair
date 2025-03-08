@@ -1,4 +1,4 @@
-Concept: Send physical letters in a few click without a printer. [SimplerPost.com](http://simplerpost.com)
+Concept: Send physical letters in a few click without a printer. [PostMail.ai](http://postmail.ai)
 - Use case
   You don’t have a printer but need to send a letter ? Do it in a few click. Draw up your letter with the assistant, you can start from the picture of a letter you want to answer to. Once your letter is good for you, send it in a click
 - Technical
