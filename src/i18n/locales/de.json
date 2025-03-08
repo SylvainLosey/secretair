@@ -1,9 +1,9 @@
 {
   "common": {
-    "title": "PrintMail - Briefe ohne Drucker versenden",
+    "title": "PostMail - Briefe ohne Drucker versenden",
     "description": "Versenden Sie physische Briefe mit wenigen Klicks ohne Drucker",
     "footerText": "Postversand einfach gemacht",
-    "chooseAction": "Wählen Sie, was Sie mit PrintMail machen möchten"
+    "chooseAction": "Wählen Sie, was Sie mit PostMail machen möchten"
   },
   "languageSwitcher": {
     "ariaLabel": "Sprache auswählen"

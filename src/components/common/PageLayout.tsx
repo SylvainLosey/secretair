@@ -32,7 +32,7 @@ export function PageLayout({ children }: PageLayoutProps) {
       
       <footer className="bg-blue-900 py-4 shadow-inner">
         <div className="container mx-auto px-4 text-center text-blue-100">
-          <p>&copy; {new Date().getFullYear()} PrintMail - {t('footerText')}</p>
+          <p>&copy; {new Date().getFullYear()} PostMail - {t('footerText')}</p>
         </div>
       </footer>
     </div>

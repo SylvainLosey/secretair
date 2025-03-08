@@ -9,7 +9,7 @@ import { Toaster } from '~/components/ui/sonner';
 import { AppProviders } from "~/app/providers";
 
 export const metadata = {
-  title: "PrintMail - Send Letters Without a Printer",
+  title: "PostMail - Send Letters Without a Printer",
   description: "Send physical letters in a few clicks without a printer",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };

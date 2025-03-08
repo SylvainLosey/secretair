@@ -10,8 +10,8 @@ export function Logo({ className = ""}: LogoProps) {
   return (
     <div className={`flex items-center ${className}`}>
       <Image 
-        src="/printmail.svg" 
-        alt="PrintMail Logo" 
+        src="/postmail.svg" 
+        alt="PostMail Logo" 
         width={120} 
         height={22} 
         className="h-8 w-auto filter brightness-0 invert-[1]" 

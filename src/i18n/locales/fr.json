@@ -1,9 +1,9 @@
 {
   "common": {
-    "title": "PrintMail - Envoyez des lettres sans imprimante",
+    "title": "PostMail - Envoyez des lettres sans imprimante",
     "description": "Envoyez des lettres physiques en quelques clics sans imprimante",
     "footerText": "Simplifier le courrier postal",
-    "chooseAction": "Choisissez ce que vous voulez faire avec PrintMail"
+    "chooseAction": "Choisissez ce que vous voulez faire avec PostMail"
   },
   "languageSwitcher": {
     "ariaLabel": "Sélectionner la langue"
