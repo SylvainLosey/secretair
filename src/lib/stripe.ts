@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { loadStripe } from '@stripe/stripe-js';
+import type { Stripe as StripeClient } from '@stripe/stripe-js';
 
 // Server-side Stripe instance - will only be used in API routes
 // This will not be included in client-side bundles
@@ -15,7 +16,7 @@ export const formatAmountForStripe = (amount: number): number => {
 };
 
 // Client-side singleton pattern for Stripe.js
-let stripePromise: Promise<any> | null = null;
+let stripePromise: Promise<StripeClient | null> | null = null;
 export const getStripeClient = () => {
   if (!stripePromise) {
     stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);

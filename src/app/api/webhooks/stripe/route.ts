@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.text();
-  const headersList = headers();
+  const headersList = await headers();
   const signature = headersList.get('stripe-signature');
 
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
@@ -23,12 +23,21 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Log before verifying the webhook signature
+    console.log('Received webhook request', {
+      signature: signature ? 'Present' : 'Missing',
+      secret: process.env.STRIPE_WEBHOOK_SECRET ? 'Present' : 'Missing'
+    });
+
     // Verify the event comes from Stripe
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
+
+    // Log the event type
+    console.log(`Processing webhook event: ${event.type}`);
 
     // Handle different types of events
     switch (event.type) {

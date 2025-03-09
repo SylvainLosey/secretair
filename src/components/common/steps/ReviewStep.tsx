@@ -178,7 +178,7 @@ export default function ReviewStep() {
       
       // Redirect to Stripe Checkout
       const stripe = await getStripeClient();
-      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
+      const { error: stripeError } = await stripe!.redirectToCheckout({ sessionId });
       
       if (stripeError) {
         throw new Error(stripeError.message);
