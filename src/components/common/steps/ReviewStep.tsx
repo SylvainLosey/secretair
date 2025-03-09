@@ -15,6 +15,7 @@ import { uploadPdf } from "~/utils/supabase-storage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { getStripeClient } from "~/lib/stripe";
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
@@ -24,6 +25,7 @@ export default function ReviewStep() {
   const [isLoading, setIsLoading] = useState(true);
   const [letter, setLetter] = useState<Letter | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { handleError } = useErrorHandler();
   const t = useTranslations('reviewStep');
   
@@ -68,10 +70,63 @@ export default function ReviewStep() {
       // Download the PDF
       downloadBinaryFile(pdfBytes, fileName ?? "letter.pdf");
       toast.success("PDF downloaded and saved to your account!");
+      return true;
     } catch (error) {
       handleError(error, "PDF Generation Error");
+      return false;
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  // Function to initiate Stripe checkout
+  const handlePayment = async () => {
+    if (!letterId) {
+      toast.error("Letter ID is missing");
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+      
+      // Only generate and upload the PDF if it hasn't been done already
+      if (!letter?.pdfUrl) {
+        // Generate PDF but don't download it to user's device
+        const pdfResult = await generateAndUploadPdf();
+        if (!pdfResult) {
+          throw new Error("Unable to generate PDF for the letter");
+        }
+      }
+      
+      // Create checkout session
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          letterId,
+          letterPrice: 5.99, // This could be dynamic based on options
+        }),
+      });
+      
+      const { sessionId, error } = await response.json();
+      
+      if (error || !sessionId) {
+        throw new Error(error || "Failed to create checkout session");
+      }
+      
+      // Redirect to Stripe Checkout
+      const stripe = await getStripeClient();
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
+      
+      if (stripeError) {
+        throw new Error(stripeError.message);
+      }
+    } catch (error) {
+      handleError(error, "Payment Error");
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
@@ -102,6 +157,37 @@ export default function ReviewStep() {
     
     URL.revokeObjectURL(url);
   }
+
+  // New helper function to generate and upload PDF without downloading
+const generateAndUploadPdf = async (): Promise<boolean> => {
+  try {
+    // Get the letter data
+    const letterData = await letterQuery.refetch();
+    
+    if (!letterData.data) {
+      throw new Error('Failed to fetch letter data');
+    }
+    
+    // Generate the PDF on the client side
+    const { pdfBytes, fileName } = await generatePDF(letterData.data);
+    
+    // Save the PDF to storage 
+    const pdfUrl = await uploadPdf(pdfBytes, 'pdfs');
+    
+    // Update the letter's pdfUrl in the database
+    if (pdfUrl && letterId) {
+      await updateLetterMutation.mutateAsync({
+        id: letterId,
+        pdfUrl: pdfUrl,
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    handleError(error, "PDF Generation Error");
+    return false;
+  }
+};
 
   const handleSwapAddresses = async () => {
     if (!letter || !letterId) return;
@@ -143,7 +229,7 @@ export default function ReviewStep() {
   if (isLoading || !letter) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
-        <LoadingSpinner size="lg" message="Loading letter details..." />
+        <LoadingSpinner size="lg" message={t('loading')} />
       </div>
     );
   }
@@ -235,7 +321,7 @@ export default function ReviewStep() {
         <Button
           variant="outline"
           onClick={downloadPdf}
-          disabled={isDownloading}
+          disabled={isDownloading || isProcessingPayment}
         >
           {isDownloading ? (
             <>
@@ -257,12 +343,20 @@ export default function ReviewStep() {
         
         <Button
           variant="default"
-          onClick={() => {
-            alert(t('paymentAlert'));
-            void downloadPdf();
-          }}
+          onClick={handlePayment}
+          disabled={isProcessingPayment || isDownloading}
         >
-          {t('payButton')}
+          {isProcessingPayment ? (
+            <>
+              <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {t('processingPayment')}
+            </>
+          ) : (
+            t('payButton')
+          )}
         </Button>
       </div>
     </div>
