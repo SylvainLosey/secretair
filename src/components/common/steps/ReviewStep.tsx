@@ -20,6 +20,60 @@ import { getStripeClient } from "~/lib/stripe";
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
 
+// Extract the address display into a component
+const AddressBox = ({ label, name, address }: { 
+  label: string, 
+  name: string, 
+  address: string 
+}) => (
+  <div className="rounded-md border border-gray-200 bg-white p-4">
+    <h4 className="mb-2 text-xs font-medium text-gray-400">{label}</h4>
+    <div className="text-sm">
+      <p className="font-medium">{name}</p>
+      <p className="whitespace-pre-line">{address}</p>
+    </div>
+  </div>
+);
+
+// Extract section header with edit button
+const SectionHeader = ({ 
+  title, 
+  onEdit, 
+  children 
+}: { 
+  title: string, 
+  onEdit: () => void, 
+  children?: React.ReactNode 
+}) => (
+  <div className="flex items-center justify-between mb-2">
+    <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+    <div className="flex space-x-2">
+      {children}
+      <button
+        onClick={onEdit}
+        className="text-sm text-blue-600 hover:underline"
+      >
+        Edit
+      </button>
+    </div>
+  </div>
+);
+
+// Loading spinner icon component
+const LoadingIcon = () => (
+  <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+);
+
+// Download icon component
+const DownloadIcon = () => (
+  <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
 export default function ReviewStep() {
   const { letterId, setCurrentStep } = useWizardStore();
   const [isLoading, setIsLoading] = useState(true);
@@ -43,18 +97,22 @@ export default function ReviewStep() {
     }
   }, [letterQuery.data]);
 
-  const downloadPdf = async () => {
+  // Unified function to handle PDF generation and upload
+  const generateAndUploadPdf = async (shouldDownload = false): Promise<boolean> => {
     try {
-      setIsDownloading(true);      
-      // Get the letter data
-      const letter = await letterQuery.refetch();
+      if (shouldDownload) {
+        setIsDownloading(true);
+      }
       
-      if (!letter.data) {
+      // Get the letter data
+      const letterData = await letterQuery.refetch();
+      
+      if (!letterData.data) {
         throw new Error('Failed to fetch letter data');
       }
       
       // Generate the PDF on the client side
-      const { pdfBytes, fileName } = await generatePDF(letter.data);
+      const { pdfBytes, fileName } = await generatePDF(letterData.data);
       
       // Save the PDF to storage 
       const pdfUrl = await uploadPdf(pdfBytes, 'pdfs');
@@ -67,19 +125,27 @@ export default function ReviewStep() {
         });
       }
       
-      // Download the PDF
-      downloadBinaryFile(pdfBytes, fileName ?? "letter.pdf");
-      toast.success("PDF downloaded and saved to your account!");
+      // Download the PDF if requested
+      if (shouldDownload) {
+        downloadBinaryFile(pdfBytes, fileName ?? "letter.pdf");
+        toast.success("PDF downloaded and saved to your account!");
+      }
+      
       return true;
     } catch (error) {
       handleError(error, "PDF Generation Error");
       return false;
     } finally {
-      setIsDownloading(false);
+      if (shouldDownload) {
+        setIsDownloading(false);
+      }
     }
   };
 
-  // Function to initiate Stripe checkout
+  // Simplified download function
+  const downloadPdf = () => generateAndUploadPdf(true);
+
+  // Function to initiate Stripe checkout  
   const handlePayment = async () => {
     if (!letterId) {
       toast.error("Letter ID is missing");
@@ -91,8 +157,7 @@ export default function ReviewStep() {
       
       // Only generate and upload the PDF if it hasn't been done already
       if (!letter?.pdfUrl) {
-        // Generate PDF but don't download it to user's device
-        const pdfResult = await generateAndUploadPdf();
+        const pdfResult = await generateAndUploadPdf(false);
         if (!pdfResult) {
           throw new Error("Unable to generate PDF for the letter");
         }
@@ -101,13 +166,8 @@ export default function ReviewStep() {
       // Create checkout session
       const response = await fetch('/api/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          letterId,
-          letterPrice: 5.99, // This could be dynamic based on options
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ letterId, letterPrice: 5.99 }),
       });
       
       const { sessionId, error } = await response.json();
@@ -158,37 +218,6 @@ export default function ReviewStep() {
     URL.revokeObjectURL(url);
   }
 
-  // New helper function to generate and upload PDF without downloading
-const generateAndUploadPdf = async (): Promise<boolean> => {
-  try {
-    // Get the letter data
-    const letterData = await letterQuery.refetch();
-    
-    if (!letterData.data) {
-      throw new Error('Failed to fetch letter data');
-    }
-    
-    // Generate the PDF on the client side
-    const { pdfBytes, fileName } = await generatePDF(letterData.data);
-    
-    // Save the PDF to storage 
-    const pdfUrl = await uploadPdf(pdfBytes, 'pdfs');
-    
-    // Update the letter's pdfUrl in the database
-    if (pdfUrl && letterId) {
-      await updateLetterMutation.mutateAsync({
-        id: letterId,
-        pdfUrl: pdfUrl,
-      });
-    }
-    
-    return true;
-  } catch (error) {
-    handleError(error, "PDF Generation Error");
-    return false;
-  }
-};
-
   const handleSwapAddresses = async () => {
     if (!letter || !letterId) return;
     
@@ -217,13 +246,7 @@ const generateAndUploadPdf = async (): Promise<boolean> => {
   };
 
   const handleEditSection = (section: "addresses" | "content" | "signature") => {
-    if (section === "addresses") {
-      setCurrentStep("addresses");
-    } else if (section === "content") {
-      setCurrentStep("content");
-    } else if (section === "signature") {
-      setCurrentStep("signature");
-    }
+    setCurrentStep(section);
   };
 
   if (isLoading || !letter) {
@@ -240,70 +263,52 @@ const generateAndUploadPdf = async (): Promise<boolean> => {
         {t('title')}
       </h2>      
       <div className="mb-8">
+        {/* Addresses Section */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-500">{t('addressesSection')}</h3>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleSwapAddresses}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                {t('swapAddresses')}
-              </button>
-              <button
-                onClick={() => handleEditSection("addresses")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t('edit')}
-              </button>
-            </div>
-          </div>
+          <SectionHeader 
+            title={t('addressesSection')} 
+            onEdit={() => handleEditSection("addresses")}
+          >
+            <button
+              onClick={handleSwapAddresses}
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              {t('swapAddresses')}
+            </button>
+          </SectionHeader>
           
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">{t('fromLabel')}</h4>
-              <div className="text-sm">
-                <p className="font-medium">{letter.senderName}</p>
-                <p className="whitespace-pre-line">{letter.senderAddress}</p>
-              </div>
-            </div>
-            
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">{t('toLabel')}</h4>
-              <div className="text-sm">
-                <p className="font-medium">{letter.receiverName}</p>
-                <p className="whitespace-pre-line">{letter.receiverAddress}</p>
-              </div>
-            </div>
+            <AddressBox 
+              label={t('fromLabel')} 
+              name={letter.senderName} 
+              address={letter.senderAddress} 
+            />
+            <AddressBox 
+              label={t('toLabel')} 
+              name={letter.receiverName} 
+              address={letter.receiverAddress} 
+            />
           </div>
         </div>
         
+        {/* Content Section */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-500">{t('contentSection')}</h3>
-            <button
-              onClick={() => handleEditSection("content")}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              {t('edit')}
-            </button>
-          </div>
+          <SectionHeader 
+            title={t('contentSection')} 
+            onEdit={() => handleEditSection("content")} 
+          />
           <div className="whitespace-pre-line rounded-md border border-gray-200 bg-white p-4">
             {letter.content}
           </div>
         </div>
         
+        {/* Signature Section */}
         {letter.signatureUrl && (
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-500">{t('signatureSection')}</h3>
-              <button
-                onClick={() => handleEditSection("signature")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t('edit')}
-              </button>
-            </div>
+            <SectionHeader 
+              title={t('signatureSection')} 
+              onEdit={() => handleEditSection("signature")} 
+            />
             <div className="rounded-md border border-gray-200 bg-white p-4">
               <Image 
                 src={letter.signatureUrl}
@@ -317,6 +322,7 @@ const generateAndUploadPdf = async (): Promise<boolean> => {
         )}
       </div>
       
+      {/* Action Buttons */}
       <div className="flex justify-center space-x-4">        
         <Button
           variant="outline"
@@ -325,17 +331,12 @@ const generateAndUploadPdf = async (): Promise<boolean> => {
         >
           {isDownloading ? (
             <>
-              <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <LoadingIcon />
               {t('downloadingButton')}
             </>
           ) : (
             <>
-              <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+              <DownloadIcon />
               {t('downloadButton')}
             </>
           )}
@@ -348,10 +349,7 @@ const generateAndUploadPdf = async (): Promise<boolean> => {
         >
           {isProcessingPayment ? (
             <>
-              <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <LoadingIcon />
               {t('processingPayment')}
             </>
           ) : (
