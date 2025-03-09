@@ -93,6 +93,8 @@
     "toLabel": "To",
     "downloadButton": "Download PDF",
     "payButton": "Send Letter",
-    "paymentAlert": "This will take you to payment processing."
+    "paymentAlert": "This will take you to payment processing.",
+"downloadingButton": "Downloading...",
+"processingPayment": "Processing..."
   }
 } 

@@ -3,7 +3,24 @@ import { stripe, formatAmountForStripe } from '~/lib/stripe';
 
 export async function POST(request: Request) {
   try {
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not properly initialized' },
+        { status: 500 }
+      );
+    }
+
     const { letterId, letterPrice = 5.99 } = await request.json();
+    
+    if (!letterId) {
+      return NextResponse.json(
+        { error: 'Letter ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Get the origin for success/cancel URLs
+    const origin = request.headers.get('origin') ?? 'http://localhost:3000';
     
     // Create a checkout session with Stripe
     const session = await stripe.checkout.sessions.create({
@@ -22,8 +39,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.headers.get('origin')}/cancel`,
+      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/cancel`,
       metadata: {
         letterId,
       },

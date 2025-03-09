@@ -4,6 +4,13 @@ import { db } from '~/server/db';
 
 export async function POST(request: Request) {
   try {
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not properly initialized' },
+        { status: 500 }
+      );
+    }
+
     const { sessionId } = await request.json();
     
     if (!sessionId) {
@@ -35,7 +42,6 @@ export async function POST(request: Request) {
         where: { id: letterId },
         data: {
           status: 'paid',
-          // You might want to store other payment details
           paymentId: session.id,
           paymentAmount: session.amount_total ? session.amount_total / 100 : null,
         },
@@ -45,7 +51,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: paymentSuccessful,
       paymentStatus: session.payment_status,
-      customer: session.customer_details?.email || null,
+      customer: session.customer_details?.email ?? null,
     });
     
   } catch (error) {
