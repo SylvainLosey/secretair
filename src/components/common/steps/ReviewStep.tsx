@@ -4,7 +4,7 @@
 "use client";
 
 // src/components/steps/ReviewStep.tsx
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useWizardStore } from "~/lib/store";
 import { api, type RouterOutputs } from "~/utils/api";
 import { Button } from "~/components/ui/button";
@@ -15,221 +15,195 @@ import { uploadPdf } from "~/utils/supabase-storage";
 import { useErrorHandler } from "~/hooks/useErrorHandler";
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { env } from "~/env";
 
 // Define Letter type based on router output
 type Letter = RouterOutputs["letter"]["getLetter"];
 
 export default function ReviewStep() {
-  const { letterId, setCurrentStep } = useWizardStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [letter, setLetter] = useState<Letter | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const { handleError } = useErrorHandler();
+  const { letterId } = useWizardStore();
   const t = useTranslations('reviewStep');
-  
-  const letterQuery = api.letter.getLetter.useQuery(
-    { id: letterId ?? "" },
-    { enabled: !!letterId }
-  );
-  
-  const updateLetterMutation = api.letter.updateLetter.useMutation();
+  const [letter, setLetter] = useState<Letter | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const { handleError } = useErrorHandler();
 
-  useEffect(() => {
-    if (letterQuery.data) {
-      setLetter(letterQuery.data);
-      setIsLoading(false);
+  // Stripe loading
+  const loadStripeScript = async () => {
+    if (!window.Stripe) {
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/';
+      script.async = true;
+      document.body.appendChild(script);
     }
-  }, [letterQuery.data]);
+    return window.Stripe;
+  };
 
+  // Fetch letter data
+  const { data, isLoading: isFetchingLetter } = api.letter.getLetter.useQuery(
+    { id: letterId ?? "" },
+    {
+      enabled: !!letterId,
+      onSuccess: (data) => {
+        if (data) {
+          setLetter(data);
+          setIsLoading(false);
+        }
+      },
+      onError: (error) => {
+        handleError(error, "Failed to load letter data");
+        setIsLoading(false);
+      },
+    }
+  );
+
+  // Generate and download the PDF
   const downloadPdf = async () => {
+    if (!letter) return;
+    
     try {
-      setIsDownloading(true);      
-      // Get the letter data
-      const letter = await letterQuery.refetch();
+      setIsDownloading(true);
       
-      if (!letter.data) {
-        throw new Error('Failed to fetch letter data');
+      // Generate PDF
+      const pdfResult = await generatePDF(letter);
+      
+      // If we have a blob, either download it or upload it
+      if (pdfResult.blob) {
+        // Create a URL for the PDF blob
+        const pdfUrl = URL.createObjectURL(pdfResult.blob);
+        
+        // Create a link element to trigger the download
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.download = `letter_${letter.id}.pdf`; 
+        link.click();
+        
+        // Clean up the URL object after download
+        URL.revokeObjectURL(pdfUrl);
+        
+        // Also upload to Supabase for persistence
+        if (letter.id) {
+          void uploadPdf(pdfResult.blob, letter.id);
+        }
       }
-      
-      // Generate the PDF on the client side
-      const { pdfBytes, fileName } = await generatePDF(letter.data);
-      
-      // Save the PDF to storage 
-      const pdfUrl = await uploadPdf(pdfBytes, 'pdfs');
-      
-      // Update the letter's pdfUrl in the database
-      if (pdfUrl && letterId) {
-        await updateLetterMutation.mutateAsync({
-          id: letterId,
-          pdfUrl: pdfUrl,
-        });
-      }
-      
-      // Download the PDF
-      downloadBinaryFile(pdfBytes, fileName ?? "letter.pdf");
-      toast.success("PDF downloaded and saved to your account!");
     } catch (error) {
-      handleError(error, "PDF Generation Error");
+      handleError(error, "Failed to generate PDF");
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // Helper function to download binary data
-  function downloadBinaryFile(base64Data: string, fileName: string) {
-    const byteCharacters = atob(base64Data);
-    const byteArrays = [];
+  // Handle payment with Stripe
+  const handlePayment = async () => {
+    if (!letter) return;
     
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
+    try {
+      setIsProcessingPayment(true);
       
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
+      // First ensure PDF is generated and uploaded
+      const pdfResult = await generatePDF(letter);
+      if (pdfResult.blob && letter.id) {
+        await uploadPdf(pdfResult.blob, letter.id);
       }
       
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-    
-    const blob = new Blob(byteArrays, { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    
-    URL.revokeObjectURL(url);
-  }
-
-  const handleSwapAddresses = async () => {
-    if (!letter || !letterId) return;
-    
-    // Create temporary variables to hold original values
-    const tempName = letter.senderName;
-    const tempAddress = letter.senderAddress;
-    
-    // Update letter in state
-    setLetter({
-      ...letter,
-      senderName: letter.receiverName,
-      senderAddress: letter.receiverAddress,
-      receiverName: tempName,
-      receiverAddress: tempAddress,
-    });
-    
-    // Update letter in database
-    await updateLetterMutation.mutateAsync({
-      id: letterId,
-      senderName: letter.receiverName,
-      senderAddress: letter.receiverAddress,
-      receiverName: tempName,
-      receiverAddress: tempAddress,
-    });
-    toast.success("Addresses swapped successfully!");
-  };
-
-  const handleEditSection = (section: "addresses" | "content" | "signature") => {
-    if (section === "addresses") {
-      setCurrentStep("addresses");
-    } else if (section === "content") {
-      setCurrentStep("content");
-    } else if (section === "signature") {
-      setCurrentStep("signature");
+      // Request checkout session from our API
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          letterId: letter.id,
+          letterPrice: 5.99, // Set your price here or fetch from config
+        }),
+      });
+      
+      const { sessionId } = await response.json();
+      
+      // Load Stripe and redirect to checkout
+      const Stripe = await loadStripeScript();
+      const stripe = Stripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+      await stripe.redirectToCheckout({ sessionId });
+    } catch (error) {
+      handleError(error, "Payment processing failed");
+      toast.error("Failed to process payment. Please try again.");
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
-  if (isLoading || !letter) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <LoadingSpinner size="lg" message="Loading letter details..." />
-      </div>
-    );
+  // Render loading state
+  if (isLoading || isFetchingLetter) {
+    return <LoadingSpinner size="lg" message={t('loading')} />;
   }
+
+  // Render content if letter exists
+  if (!letter) {
+    return <div>No letter data found</div>;
+  }
+
+  // Format addresses for display
+  const formatAddressForDisplay = (address: string) => {
+    return address.split('\n').map((line, i) => (
+      <span key={i} className="block">{line}</span>
+    ));
+  };
 
   return (
-    <div className="rounded-lg p-6">
-      <h2 className="mb-4 text-center text-2xl font-bold text-gray-800">
-        {t('title')}
-      </h2>      
-      <div className="mb-8">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-500">{t('addressesSection')}</h3>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleSwapAddresses}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                {t('swapAddresses')}
-              </button>
-              <button
-                onClick={() => handleEditSection("addresses")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t('edit')}
-              </button>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">{t('title')}</h2>
+      
+      {/* Address section */}
+      <div className="rounded-lg border p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-lg font-medium">{t('addressesSection')}</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <p className="mb-1 text-sm font-medium text-gray-500">{t('fromLabel')}</p>
+            <p className="font-medium">{letter.senderName}</p>
+            <div className="text-sm text-gray-600">
+              {formatAddressForDisplay(letter.senderAddress)}
             </div>
           </div>
           
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">{t('fromLabel')}</h4>
-              <div className="text-sm">
-                <p className="font-medium">{letter.senderName}</p>
-                <p className="whitespace-pre-line">{letter.senderAddress}</p>
-              </div>
-            </div>
-            
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <h4 className="mb-2 text-xs font-medium text-gray-400">{t('toLabel')}</h4>
-              <div className="text-sm">
-                <p className="font-medium">{letter.receiverName}</p>
-                <p className="whitespace-pre-line">{letter.receiverAddress}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-500">{t('contentSection')}</h3>
-            <button
-              onClick={() => handleEditSection("content")}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              {t('edit')}
-            </button>
-          </div>
-          <div className="whitespace-pre-line rounded-md border border-gray-200 bg-white p-4">
-            {letter.content}
-          </div>
-        </div>
-        
-        {letter.signatureUrl && (
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-500">{t('signatureSection')}</h3>
-              <button
-                onClick={() => handleEditSection("signature")}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t('edit')}
-              </button>
-            </div>
-            <div className="rounded-md border border-gray-200 bg-white p-4">
-              <Image 
-                src={letter.signatureUrl}
-                alt="Your signature"
-                width={200}
-                height={80}
-                className="h-16 w-auto object-contain"
-              />
+            <p className="mb-1 text-sm font-medium text-gray-500">{t('toLabel')}</p>
+            <p className="font-medium">{letter.receiverName}</p>
+            <div className="text-sm text-gray-600">
+              {formatAddressForDisplay(letter.receiverAddress)}
             </div>
           </div>
-        )}
+        </div>
       </div>
+      
+      {/* Content section */}
+      <div className="rounded-lg border p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-lg font-medium">{t('contentSection')}</h3>
+        </div>
+        <div className="whitespace-pre-wrap">{letter.content}</div>
+      </div>
+      
+      {/* Signature section */}
+      {letter.signatureUrl && (
+        <div className="rounded-lg border p-4">
+          <div className="mb-2">
+            <h3 className="text-lg font-medium">{t('signatureSection')}</h3>
+          </div>
+          <div className="flex justify-center">
+            <Image 
+              src={letter.signatureUrl} 
+              alt="Signature" 
+              width={200} 
+              height={100} 
+              className="h-auto max-w-full"
+            />
+          </div>
+        </div>
+      )}
       
       <div className="flex justify-center space-x-4">        
         <Button
@@ -257,12 +231,25 @@ export default function ReviewStep() {
         
         <Button
           variant="default"
-          onClick={() => {
-            alert(t('paymentAlert'));
-            void downloadPdf();
-          }}
+          onClick={handlePayment}
+          disabled={isProcessingPayment}
         >
-          {t('payButton')}
+          {isProcessingPayment ? (
+            <>
+              <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Processing...
+            </>
+          ) : (
+            <>
+              <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              {t('payButton')}
+            </>
+          )}
         </Button>
       </div>
     </div>

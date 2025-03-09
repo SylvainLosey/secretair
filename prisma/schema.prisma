@@ -12,17 +12,19 @@ datasource db {
 }
 
 model Letter {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  content        String   @db.Text
-  senderName     String
-  senderAddress  String
-  receiverName   String
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  content         String   @db.Text
+  senderName      String
+  senderAddress   String
+  receiverName    String
   receiverAddress String
-  signatureUrl   String?
-  imageUrl       String?
-  pdfUrl         String?
-  status         String   @default("draft")
-  userPrompt     String?  @db.Text
+  signatureUrl    String?
+  imageUrl        String?
+  pdfUrl          String?
+  status          String? // 'draft', 'paid', 'sent', 'delivered', 'payment_failed'
+  userPrompt      String?  @db.Text
+  paymentId       String? // Stripe session ID
+  paymentAmount   Float? // Amount paid
 }
